@@ -1,30 +1,61 @@
 #API Documentation for Events
 
-## POST /event
+## POST /events
 takes data from these params, and creates this database record
 
 + Request (application/json)
 
+
         {
           "type": "event",
-          "title" : "event name",
-          "description" :"",
-          "creator name" : "",
-          "user_id": ""
-          "location_name" : "",
-          "location" : "",
-          "event_date" : "",
-          "event_start_time" : "",
-          "event_end_time" : "",
-          "price" : "",
-          "required_materials" : "",
-          "imgs"; ["url", "url", ...],            
+          "title": "event name",
+          "description":"",
+          "creator name": "",
+          "user_id": "",
+          "location": {
+          	"position": {
+          		"lat": 0.0,
+          		"long": 0.0
+          		}
+          	"name": "",
+          	"city": "",
+          	"state": "",
+          	"country":""
+          	},
+          "event_date": "",
+          "event_start_time": "",
+          "event_end_time": "",
+          "price": "",
+          "required_materials": "",
+          "imgs": ["url", "url"]            
         }
-        
-+ Response 202 (application/json)
+ 
+       
++ Response 201 (application/json)
         
         {
-          "response": "success"
+          "id": "",
+          "type": "event",
+          "title": "event name",
+          "description":"",
+          "creator name": "",
+          "user_id": "",
+          "location": {
+          	"position": {
+          		"lat": 0.0,
+          		"long": 0.0
+          		}
+          	"name": "",
+          	"city": "",
+          	"state": "",
+          	"country":""
+          	},
+          "event_date": "",
+          "event_start_time": "",
+          "event_end_time": "",
+          "price": "",
+          "required_materials": "",
+          "imgs": ["url", "url"]    
         }
         
 
@@ -43,59 +74,60 @@ respond with all events within search criteria
 + Response 200 (application/json)
 
         [{
-          "_id": "",
-          "event_time_zone" : "UTM",
-          "Position": {
-           "Longitude": 9.96233,
-           "Latitude": 49.80404
-           },
           "type": "event",
-          "title" : "event name",
-          "description" :"",
-          "creator name" : "",
-          "user_id": ""
-          "location_name" : "",
-          "location" : "",
-          "event_date" : "",
-          "event_start_time" : "",
-          "event_end_time" : "",
-          "price" : "",
-          "required_materials" : "",
-          "imgs"; ["url", "url", ...],    
+          "title": "event name",
+          "description":"",
+          "creator name": "",
+          "user_id": "",
+          "location": {
+          	"position": {
+          		"lat": 0.0,
+          		"long": 0.0
+          		}
+          	"name": "",
+          	"city": "",
+          	"state": "",
+          	"country":""
+          	},
+          "event_date": "",
+          "event_start_time": "",
+          "event_end_time": "",
+          "price": "",
+          "required_materials": "",
+          "imgs": ["url", "url"]            
+        }]
 
-         },...]
 
 
-
-## GET /event/{id}
+## GET /events/{id}
 + Response 200 (application/json)
 
         {
-         "_id": "",
-         "event_time_zone" : "UTM",
-         "Position": {
-          "Longitude": 9.96233,
-          "Latitude": 49.80404
-          },
-         "type": "event",
-         "title" : "event name",
-         "description" :"",
-         "creator name" : "",
-         "user_id": ""
-         "location_name" : "",
-         "location" : "",
-         "event_date" : "",
-         "event_start_time" : "",
-         "event_end_time" : "",
-         "price" : "",
-         "required_materials" : "",
-         "imgs"; ["url", "url", ...],    
+          "type": "event",
+          "title": "event name",
+          "description":"",
+          "creator name": "",
+          "user_id": "",
+          "location": {
+          	"position": {
+          		"lat": 0.0,
+          		"long": 0.0
+          		}
+          	"name": "",
+          	"city": "",
+          	"state": "",
+          	"country":""
+          	},
+          "event_date": "",
+          "event_start_time": "",
+          "event_end_time": "",
+          "price": "",
+          "required_materials": "",
+          "imgs": ["url", "url"]            
+        }
+## DELETE /events/{id}
 
-         }
-  
-## DELETE /event/{id}
-
-## POST /user
+## POST /users
 + Request (application/json)
 
 		{
@@ -108,7 +140,7 @@ respond with all events within search criteria
 		 "img": "",
 		}
 		
-## GET /user
+## GET /users
 +Respond
 		{
 		 ""
