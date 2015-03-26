@@ -1,154 +1,159 @@
 #API Documentation for Events
 
-## POST /events
-takes data from these params, and creates this database record
+- request payloads are sent as json with `Content-Type: application/json; charset=UTF-8` header
 
-+ Request (application/json)
+## Create an event
 
+Takes data from these params, and creates this database record.
 
-        {
-          "type": "event",
-          "title": "event name",
-          "description":"",
-          "creator name": "",
-          "user_id": "",
-          "location": {
-          	"position": {
-          		"lat": 0.0,
-          		"long": 0.0
-          		}
-          	"name": "",
-          	"city": "",
-          	"state": "",
-          	"country":""
-          	},
-          "event_date": "",
-          "event_start_time": "",
-          "event_end_time": "",
-          "price": "",
-          "required_materials": "",
-          "imgs": ["url", "url"]            
-        }
- 
-       
-+ Response 201 (application/json)
-        
-        {
-          "id": "",
-          "type": "event",
-          "title": "event name",
-          "description":"",
-          "creator name": "",
-          "user_id": "",
-          "location": {
-          	"position": {
-          		"lat": 0.0,
-          		"long": 0.0
-          		}
-          	"name": "",
-          	"city": "",
-          	"state": "",
-          	"country":""
-          	},
-          "event_date": "",
-          "event_start_time": "",
-          "event_end_time": "",
-          "price": "",
-          "required_materials": "",
-          "imgs": ["url", "url"]    
-        }
-        
+```
+POST /events
+```
 
-## GET /events
-respond with all events within search criteria 
+### Input example
 
-+ Request optional parameters
+```json
+{
+  "title":"event name",
+  "description":"event description",
+  "location":{
+    "position":{
+      "lat": -41.299553,
+      "lon": 174.768181
+    },
+    "name":"Central Park",
+    "city":"Wellington",
+    "country":"NZ"
+  },
+  "event_date":"",
+  "event_start_time":"",
+  "event_end_time":"",
+  "imgs":[
+    "https://gebarbieri.files.wordpress.com/2014/03/barefoot-in-the-park-yoga-6-25-09-45.jpg?w=599",
+    "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRKMgybw0vsuK_GMwCw0UUM30fQgRpRgkgIeNZMGnxt1rX8glnPog"
+  ]
+}
+```
 
-		{radius_from_location,
-		 city_name,
-		 day,
-		 week,
-		 teacher,
-		}
+### Response
 
-+ Response 200 (application/json)
+```
+Status: 201 CREATED
+```
 
-        [{
-          "type": "event",
-          "title": "event name",
-          "description":"",
-          "creator name": "",
-          "user_id": "",
-          "location": {
-          	"position": {
-          		"lat": 0.0,
-          		"long": 0.0
-          		}
-          	"name": "",
-          	"city": "",
-          	"state": "",
-          	"country":""
-          	},
-          "event_date": "",
-          "event_start_time": "",
-          "event_end_time": "",
-          "price": "",
-          "required_materials": "",
-          "imgs": ["url", "url"]            
-        }]
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "title":"event name",
+  "description":"event description",
+  "location":{
+    "position":{
+      "lat": -41.299553,
+      "lon": 174.768181
+    },
+    "name":"Central Park",
+    "city":"Wellington",
+    "country":"NZ"
+  },
+  "event_date":"",
+  "event_start_time":"",
+  "event_end_time":"",
+  "imgs":[
+    "https://gebarbieri.files.wordpress.com/2014/03/barefoot-in-the-park-yoga-6-25-09-45.jpg?w=599",
+    "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRKMgybw0vsuK_GMwCw0UUM30fQgRpRgkgIeNZMGnxt1rX8glnPog"
+  ]
+}
+```
 
 
+## List all the events
 
-## GET /events/{id}
-+ Response 200 (application/json)
+Respond with all events.
 
-        {
-          "type": "event",
-          "title": "event name",
-          "description":"",
-          "creator name": "",
-          "user_id": "",
-          "location": {
-          	"position": {
-          		"lat": 0.0,
-          		"long": 0.0
-          		}
-          	"name": "",
-          	"city": "",
-          	"state": "",
-          	"country":""
-          	},
-          "event_date": "",
-          "event_start_time": "",
-          "event_end_time": "",
-          "price": "",
-          "required_materials": "",
-          "imgs": ["url", "url"]            
-        }
-## DELETE /events/{id}
+```
+GET /events
+```
 
-## POST /users
-+ Request (application/json)
+### Response
 
-		{
-		 "name_first" : "",
-		 "name_last" : "",
-		 "email": "",
-		 "password": "",
-		 "password_conf": "",
-		 "info" : "",
-		 "img": "",
-		}
-		
-## GET /users
-+Respond
-		{
-		 ""
-		}
-		
+```
+Status: 200 OK
+```
+
+```json
+[
+  {
+    "id": "507f1f77bcf86cd799439011",
+    "title":"event name",
+    "description":"event description",
+    "location":{
+      "position":{
+        "lat": -41.299553,
+        "lon": 174.768181
+      },
+      "name":"Central Park",
+      "city":"Wellington",
+      "country":"NZ"
+    },
+    "event_date":"",
+    "event_start_time":"",
+    "event_end_time":"",
+    "imgs":[
+      "https://gebarbieri.files.wordpress.com/2014/03/barefoot-in-the-park-yoga-6-25-09-45.jpg?w=599",
+      "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRKMgybw0vsuK_GMwCw0UUM30fQgRpRgkgIeNZMGnxt1rX8glnPog"
+    ]
+  }
+]
+```
 
 
 
+## Show event details
 
+```
+GET /events/{id}
+```
 
+### Response
 
+```
+Status: 200 OK
+```
+
+```json
+[
+  {
+    "id": "507f1f77bcf86cd799439011",
+    "title":"event name",
+    "description":"event description",
+    "location":{
+      "position":{
+        "lat": -41.299553,
+        "lon": 174.768181
+      },
+      "name":"Central Park",
+      "city":"Wellington",
+      "country":"NZ"
+    },
+    "event_date":"",
+    "event_start_time":"",
+    "event_end_time":"",
+    "imgs":[
+      "https://gebarbieri.files.wordpress.com/2014/03/barefoot-in-the-park-yoga-6-25-09-45.jpg?w=599",
+      "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRKMgybw0vsuK_GMwCw0UUM30fQgRpRgkgIeNZMGnxt1rX8glnPog"
+    ]
+  }
+]
+```
+
+## Delete an event
+
+```
+DELETE /events/{id}
+```
+
+### Response
+
+```
+Status: 204 NO CONTENT
+```
