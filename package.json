@@ -1,0 +1,29 @@
+{
+  "name": "yogainthepark",
+  "version": "0.0.0",
+  "description": "##How to start the project ###Start server \"node sever.js\"",
+  "main": "sever.js",
+  "dependencies": {
+    "express": "~4.11.2",
+    "body-parser": "~1.12.2"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": "0.12.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ashlynbaum/yogainthepark.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ashlynbaum/yogainthepark/issues"
+  },
+  "homepage": "https://github.com/ashlynbaum/yogainthepark"
+}
+
