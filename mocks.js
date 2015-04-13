@@ -34,6 +34,11 @@ var eventCollection = {
   insert: function(event, cb) {
     event.id = crypto.randomBytes(20).toString('hex');
     cb(null, event);
+  },
+  destroy: function(id, cb) {
+    var eventCopy = JSON.parse(JSON.stringify(fakeEvent));
+    eventCopy.id = id;
+    cb(null, eventCopy);
   }
 };
 
