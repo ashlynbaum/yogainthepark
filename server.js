@@ -27,4 +27,10 @@ app.post('/events', function(req, res){
   });
 });
 
+app.delete('/events/:id', function(req, res){
+  db.events().destroy(req.params.id, function(err, event){
+    res.status(204).end();
+  });
+});
+
 var server = app.listen(process.env.PORT || 3000);
