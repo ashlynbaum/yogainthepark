@@ -11,4 +11,10 @@ app.get('/events', function(req, res){
   });
 });
 
+app.get('/events/:id', function(req, res){
+  db.events().find(req.params.id, function(err, event) {
+    res.send(event);
+  });
+});
+
 var server = app.listen(process.env.PORT || 3000);
