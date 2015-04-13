@@ -15,9 +15,8 @@ var fakeEvent = {
     "city":"Wellington",
     "country":"NZ"
   },
-  "event_date":"",
-  "event_start_time":"",
-  "event_end_time":"",
+  "event_start_time":"2015-03-26T23:20:32Z",
+  "event_end_time":"2015-03-26T23:40:32Z",
   "imgs":[
     "https://gebarbieri.files.wordpress.com/2014/03/barefoot-in-the-park-yoga-6-25-09-45.jpg?w=599",
     "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcRKMgybw0vsuK_GMwCw0UUM30fQgRpRgkgIeNZMGnxt1rX8glnPog"
