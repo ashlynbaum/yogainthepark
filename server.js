@@ -71,6 +71,13 @@ MongoClient.connect(url, function (err, db) {
       });
     });
 
+    app.post('/events', function(req, res){
+      eventsCollection.insert( req.body, function(err, result) {
+        var event = result.ops[0]
+        res.status(201).send(formatEvent(event));
+      });
+    });
+
     app.use(function(err, req, res, next) {
       console.log(' error', err);
       res.status(404).send(err);
@@ -79,31 +86,5 @@ MongoClient.connect(url, function (err, db) {
     });
   }
 });
-
-
-
-// app.get('/events', function(req, res){
-//   db.events().all(function(err, events) {
-//     res.send(events);
-//   });
-// });
-
-// app.get('/events/:id', function(req, res){
-//   db.events().find(req.params.id, function(err, event) {
-//     res.send(event);
-//   });
-// });
-
-// app.post('/events', function(req, res){
-//   db.events().insert( req.body, function(err, events) {
-//     res.status(201).send(req.body);
-//   });
-// });
-
-// app.delete('/events/:id', function(req, res){
-//   db.events().destroy(req.params.id, function(err, event){
-//     res.status(204).end();
-//   });
-// });
 
 var server = app.listen(process.env.PORT || 3000);
