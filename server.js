@@ -82,7 +82,7 @@ MongoClient.connect(url, function (err, db) {
 
     app.patch('/events/:id', function(req, res){
       eventsCollection.findAndModify( { "_id" : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
-        res.status(202).send(formatEvent(result.value));
+        res.status(200).send(formatEvent(result.value));
       });
     });
 
