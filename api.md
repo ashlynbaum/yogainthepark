@@ -143,6 +143,12 @@ Status: 200 OK
   }
 ]
 ```
+## Update an event
+
+```
+Patch /events/{id}
+```
+
 
 ## Delete an event
 

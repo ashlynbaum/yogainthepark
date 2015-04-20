@@ -80,6 +80,12 @@ MongoClient.connect(url, function (err, db) {
       });
     });
 
+    app.patch('/events/:id', function(req, res){
+      eventsCollection.findAndModify( { "_id" : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
+        res.status(202).send(formatEvent(result.value));
+      });
+    });
+
     app.use(function(err, req, res, next) {
       console.log(' error', err);
       res.status(404).send(err);
