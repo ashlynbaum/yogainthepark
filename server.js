@@ -50,19 +50,9 @@ MongoClient.connect(url, function (err, db) {
 
     app.get('/events/:id', function(req, res, next) {
       var id = ObjectID(req.params.id)
-      // var id;
-      // try {
-      //   id = ObjectID(req.params.id);
-      // } catch (e) {
-      //   console.log(e.stack)
-      //   return res.status(404).end()
-      // }
-
       eventsCollection.findOne({ "_id" : id }, function(err, event) {
         if (event == null) return res.status(404).send(err);
-
         event2 = formatEvent(event);
-        console.log(event, event2);
         res.send(event2);
       });
     });
