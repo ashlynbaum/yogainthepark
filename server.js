@@ -2,7 +2,9 @@ var app = require('express')()
 
 var MongoClient = require('mongodb').MongoClient
 // Connection URL for database
-var url = 'mongodb://localhost:27017/yoga';
+
+var url = ( process.env.MONGOLAB_URI  || 'mongodb://localhost:27017/yoga' );
+
 var ObjectID = require('mongodb').ObjectID;
 
 
