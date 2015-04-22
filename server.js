@@ -6,7 +6,7 @@ var MongoClient = require('mongodb').MongoClient
 var url = ( process.env.MONGOLAB_URI  || 'mongodb://localhost:27017/yoga' );
 
 var ObjectID = require('mongodb').ObjectID;
-
+var bcrypt = require('bcrypt');
 
 var bodyParser = require('body-parser');
 
@@ -27,6 +27,8 @@ function formatEvent(event){
 
   return e;
 };
+
+var formatUser = formatEvent
 
 MongoClient.connect(url, function (err, db) {
   if (err) {
@@ -82,6 +84,45 @@ MongoClient.connect(url, function (err, db) {
       next(err);
 
     });
+
+
+    // Get the users doc
+    var usersCollection = db.collection('users')
+
+    app.post('/signup', function(req, res){
+      bcrypt.genSalt(10, function(err, salt) {
+        bcrypt.hash(req.body.password, salt, function(err, hash) {
+          usersCollection.findOne( {email: req.body.email}, function(err, user) {
+            if (!user){
+              usersCollection.insert( {email: req.body.email, encryptedPassword: hash}, function(err, result){
+                user = result.ops[0];
+                res.status(200).send(formatUser(user).id);
+              });
+            } else{
+              res.status(422).send("This user email already exists.")
+            }
+          });
+        });
+      });
+    });
+
+    app.post('/login', function(req, res){
+      usersCollection.findOne( {email: req.body.email}, function(err, user){
+        if (!user){
+          res.status(403).end()
+        } else {
+          bcrypt.compare( req.body.password , user.encryptedPassword, function(err, isSame) {
+            if (isSame){
+              user = formatUser(user);
+              res.status(200).send(user.id);
+            } else{
+              res.status(403).end()
+            }
+          });
+        }
+      });
+    });
+
   }
 });
 

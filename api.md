@@ -195,3 +195,42 @@ DELETE /events/{id}
 ```
 Status: 204 NO CONTENT
 ```
+
+## User Registration
+```
+POST /signup
+```
+### Input example
+
+```json
+{
+  "email": "example@example.com",
+  "First Name": "Ashlyn",
+  "Last Name": "Baum",
+  "Password": "******" 
+}
+### Response
+```
+Status: 200 ok
+```
+```json{
+  "id": "507f1f77bcf86cd799439012"
+}
+## User Authentication
+```
+POST /login
+```
+### Input Example
+```json{
+  "email": "example@example.com",
+  "Password": "****"
+}
+### Response
+```
+Status: 200 ok
+```
+```json{
+  "id": "507f1f77bcf86cd799439012"
+}
+```
+
