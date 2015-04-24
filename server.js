@@ -65,7 +65,7 @@ MongoClient.connect(url, function (err, db) {
 
     app.post('/events', function(req, res){
       eventsCollection.insert( req.body, function(err, result) {
-        var event = result.ops[0]
+        var event = result.ops[0];
         res.status(201).send(formatEvent(event));
       });
     });
