@@ -89,21 +89,31 @@ MongoClient.connect(url, function (err, db) {
     // Get the users doc
     var usersCollection = db.collection('users')
 
+    function validateEmail(email) {
+        var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        return re.test(email);
+    }
+
     app.post('/signup', function(req, res){
-      bcrypt.genSalt(10, function(err, salt) {
-        bcrypt.hash(req.body.password, salt, function(err, hash) {
-          usersCollection.findOne( {email: req.body.email}, function(err, user) {
-            if (!user){
-              usersCollection.insert( {email: req.body.email, encryptedPassword: hash}, function(err, result){
-                user = result.ops[0];
-                res.status(200).send(formatUser(user).id);
-              });
-            } else{
-              res.status(422).send("This user email already exists.")
-            }
+      var email = validateEmail(req.body.email);
+      if (email == false){
+        res.status(422).send("Invalid email")
+      } else {
+        bcrypt.genSalt(10, function(err, salt) {
+          bcrypt.hash(req.body.password, salt, function(err, hash) {
+            usersCollection.findOne( {email: req.body.email}, function(err, user) {
+              if (!user){
+                usersCollection.insert( {email: req.body.email, encryptedPassword: hash}, function(err, result){
+                  user = result.ops[0];
+                  res.status(200).send(formatUser(user).id);
+                });
+              } else{
+                res.status(422).send("This user email already exists.")
+              }
+            });
           });
         });
-      });
+      }
     });
 
     app.post('/login', function(req, res){
