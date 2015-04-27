@@ -30,6 +30,11 @@ function formatEvent(event){
 
 var formatUser = formatEvent
 
+function validateEmail(email) {
+    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+    return re.test(email);
+}
+
 MongoClient.connect(url, function (err, db) {
   if (err) {
     console.log('Unable to connect to the mongoDB server. Error:', err);
@@ -89,14 +94,10 @@ MongoClient.connect(url, function (err, db) {
     // Get the users doc
     var usersCollection = db.collection('users')
 
-    function validateEmail(email) {
-        var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
-        return re.test(email);
-    }
 
     app.post('/signup', function(req, res){
-      var email = validateEmail(req.body.email);
-      if (email == false){
+      var isEmail = validateEmail(req.body.email);
+      if (!isEmail){
         res.status(422).send("Invalid email")
       } else {
         bcrypt.genSalt(10, function(err, salt) {
