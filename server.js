@@ -30,6 +30,14 @@ function formatEvent(event){
 
 var formatUser = formatEvent
 
+var createEvent = function(attr){
+  return {
+    "title": attr.title,
+    creatorID: null
+  }
+};
+
+
 function validateEmail(email) {
     var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
     return re.test(email);
@@ -70,10 +78,23 @@ MongoClient.connect(url, function (err, db) {
       });
     });
 
+    // Creating Event
     app.post('/events', function(req, res){
-      eventsCollection.insert( req.body, function(err, result) {
-        var event = result.ops[0]
-        res.status(201).send(formatEvent(event));
+      // get event unformation
+      // authentication ---> _id will become authToken
+      var creatorID = req.get("X-Auth-Token")
+      usersCollection.findOne( {"_id": ObjectID(creatorID)}, function(err, result){
+        if (result){
+          // create event in db
+          var eventObj = createEvent(req.body)
+          eventObj.creatorID = creatorID
+          eventsCollection.insert( eventObj, function(err, result) {
+            var event = result.ops[0]
+            res.status(201).send(formatEvent(event));
+          });
+        } else {
+          res.status(403).end()
+        }
       });
     });
 
