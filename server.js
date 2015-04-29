@@ -50,6 +50,20 @@ MongoClient.connect(url, function (err, db) {
 
     // Get the events doc
     var eventsCollection = db.collection('events')
+    var usersCollection = db.collection('users')
+
+    // authorization middleware
+    var auth = function(req, res, next) {
+      var authToken = req.get("X-Auth-Token")
+      usersCollection.findOne( {"_id": ObjectID(authToken)}, function(err, user){
+        if(user) {
+          req.user = user;
+          next()
+        } else {
+          res.status(403).end()
+        }
+      });
+    }
 
     app.get('/events', function(req, res){
       eventsCollection.find({}).toArray(function(err, events) {
@@ -72,25 +86,13 @@ MongoClient.connect(url, function (err, db) {
       });
     });
 
-    app.delete('/events/:id', function(req, res){
-      eventsCollection.remove({ "_id" : ObjectID(req.params.id) }, function(err, event){
-        res.status(204).end();
-      });
-    });
-
-    // Creating Event
-    app.post('/events', function(req, res){
-      // get event unformation
-      // authentication ---> _id will become authToken
-      var creatorID = req.get("X-Auth-Token")
-      usersCollection.findOne( {"_id": ObjectID(creatorID)}, function(err, result){
-        if (result){
-          // create event in db
-          var eventObj = createEvent(req.body)
-          eventObj.creatorID = creatorID
-          eventsCollection.insert( eventObj, function(err, result) {
-            var event = result.ops[0]
-            res.status(201).send(formatEvent(event));
+    // Delete Event
+    app.delete('/events/:id', auth, function(req, res){
+      eventsCollection.findOne( {"_id" : ObjectID(req.params.id)}, function(err, event){
+        var creatorID = event.creatorID
+        if (creatorID.equals(req.user._id)){
+          eventsCollection.remove({ "_id" : ObjectID(req.params.id) }, function(){
+            res.status(204).end();
           });
         } else {
           res.status(403).end()
@@ -98,9 +100,27 @@ MongoClient.connect(url, function (err, db) {
       });
     });
 
-    app.patch('/events/:id', function(req, res){
-      eventsCollection.findAndModify( { "_id" : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
-        res.status(200).send(formatEvent(result.value));
+    // Create Event
+    app.post('/events', auth, function(req, res){
+      var eventObj = createEvent(req.body);
+      eventObj.creatorID = req.user._id;
+      eventsCollection.insert( eventObj, function(err, result) {
+        var event = result.ops[0]
+        res.status(201).send(formatEvent(event));
+      });
+    });
+
+    // update event
+    app.patch('/events/:id', auth, function(req, res){
+      eventsCollection.findOne( { "_id" : ObjectID(req.params.id) }, function(err, event){
+        var creatorID = event.creatorID;
+        if (creatorID.equals(req.user._id)){
+          eventsCollection.findAndModify( { "_id" : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
+            res.status(200).send(formatEvent(result.value));
+          });
+        } else {
+          res.status(403).end()
+        };
       });
     });
 
@@ -113,7 +133,6 @@ MongoClient.connect(url, function (err, db) {
 
 
     // Get the users doc
-    var usersCollection = db.collection('users')
 
 
     app.post('/signup', function(req, res){
