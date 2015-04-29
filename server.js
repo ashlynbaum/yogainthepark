@@ -55,7 +55,7 @@ MongoClient.connect(url, function (err, db) {
     // authorization middleware
     var auth = function(req, res, next) {
       var authToken = req.get("X-Auth-Token")
-      usersCollection.findOne( {"_id": ObjectID(authToken)}, function(err, user){
+      usersCollection.findOne( { authToken: authToken }, function(err, user){
         if(user) {
           req.user = user;
           next()
