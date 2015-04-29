@@ -133,7 +133,20 @@ MongoClient.connect(url, function (err, db) {
 
 
     // Get the users doc
+    // send random auth
+    var rand = function() {
+        return Math.random().toString(16).substr(2); //base 16 for hex and subtract 2 moves the decimal place
+    };
 
+    var genToken = function() {
+        return rand() + rand() + rand() + rand(); // to make string 32 characters
+    };
+
+    function isTokenInDB(token, cb) {
+      usersCollection.findOne( {authToken: token}, function(err, user) {
+        cb(null, user && true)
+      });
+    };
     // check that token does not already exist
     function genUniqueToken(cb) {
       var token = genToken()
