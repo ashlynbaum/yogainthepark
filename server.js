@@ -32,7 +32,7 @@ var formatUser = formatEvent
 
 var createEvent = function(attr){
   return {
-    "title": attr.title,
+    title: attr.title,
     creatorID: null
   }
 };
