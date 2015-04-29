@@ -134,28 +134,46 @@ MongoClient.connect(url, function (err, db) {
 
     // Get the users doc
 
+    // check that token does not already exist
+    function genUniqueToken(cb) {
+      var token = genToken()
+      isTokenInDB(token, function(err, result) {
+        if (result) {
+          return genUniqueToken(cb);
+          console.log("token is token" + token)
+        } 
+        else{
+          return cb(null, token);
+          console.log("is token" + token)
+        }
+      });
+    };
 
     app.post('/signup', function(req, res){
-      var isEmail = validateEmail(req.body.email);
-      if (!isEmail){
-        res.status(422).send("Invalid email")
-      } else {
-        bcrypt.genSalt(10, function(err, salt) {
-          bcrypt.hash(req.body.password, salt, function(err, hash) {
-            usersCollection.findOne( {email: req.body.email}, function(err, user) {
-              if (!user){
-                usersCollection.insert( {email: req.body.email, encryptedPassword: hash}, function(err, result){
-                  user = result.ops[0];
-                  res.status(200).send(formatUser(user).id);
+          var isEmail = validateEmail(req.body.email);
+          if (!isEmail){
+            res.status(422).send("Invalid email")
+          } else {
+            bcrypt.genSalt(10, function(err, salt) {
+              bcrypt.hash(req.body.password, salt, function(err, hash) {
+                usersCollection.findOne( {email: req.body.email}, function(err, user) {
+                  if (!user){
+                    genUniqueToken(function(err, uniqueToken) {
+                      usersCollection.insert( {email: req.body.email, encryptedPassword: hash, authToken: uniqueToken}, function(err, result){
+                        user = result.ops[0];
+                        res.status(200).send("authToken is " + uniqueToken);
+                      });
+                    });
+                      // res.status(200).send(formatUser(user).id);
+                  } else{
+                    res.status(422).send("This user email already exists.")
+                  }
                 });
-              } else{
-                res.status(422).send("This user email already exists.")
-              }
+              });
             });
-          });
+          }
         });
-      }
-    });
+
 
     app.post('/login', function(req, res){
       usersCollection.findOne( {email: req.body.email}, function(err, user){
