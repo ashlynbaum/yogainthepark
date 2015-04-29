@@ -140,11 +140,8 @@ MongoClient.connect(url, function (err, db) {
       isTokenInDB(token, function(err, result) {
         if (result) {
           return genUniqueToken(cb);
-          console.log("token is token" + token)
-        } 
-        else{
+        } else{
           return cb(null, token);
-          console.log("is token" + token)
         }
       });
     };
@@ -164,7 +161,6 @@ MongoClient.connect(url, function (err, db) {
                         res.status(200).send("authToken is " + uniqueToken);
                       });
                     });
-                      // res.status(200).send(formatUser(user).id);
                   } else{
                     res.status(422).send("This user email already exists.")
                   }
