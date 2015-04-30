@@ -38,7 +38,7 @@ var createEvent = function(attr){
 };
 
 
-function validateEmail(email) {
+var validateEmail = function validateEmail(email) {
     var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
     return re.test(email);
 }
@@ -142,7 +142,7 @@ MongoClient.connect(url, function (err, db) {
         return rand() + rand() + rand() + rand(); // to make string 32 characters
     };
 
-    function isTokenInDB(token, cb) {
+    var isTokenInDB = function isTokenInDB(token, cb) {
       usersCollection.findOne( {authToken: token}, function(err, user) {
         cb(null, user && true)
       });
