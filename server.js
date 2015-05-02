@@ -54,7 +54,13 @@ MongoClient.connect(url, function (err, db) {
 
     // authorization middleware
     var auth = function(req, res, next) {
-      var authToken = req.get("X-Auth-Token")
+      req = req.req || req;
+      var authToken = req.headers.authorization;
+      if (!auth) return;
+      var parts = authToken.split(' ');
+      if ('token' != parts[0].toLowerCase()) return;
+      if (!parts[1]) return;
+      authToken = parts[1];
       usersCollection.findOne( { authToken: authToken }, function(err, user){
         if(user) {
           req.user = user;
@@ -211,7 +217,7 @@ MongoClient.connect(url, function (err, db) {
           bcrypt.compare( basicAuthUser.pass , user.encryptedPassword, function(err, isSame) {
             if (isSame){
               user = formatUser(user);
-              res.status(200).send("authentication token is " + user.authToken);
+              res.status(200).send({auth_token: user.authToken});
             } else{
               res.status(403).end()
             }
