@@ -7,7 +7,7 @@ var url = ( process.env.MONGOLAB_URI  || 'mongodb://localhost:27017/yoga' );
 
 var ObjectID = require('mongodb').ObjectID;
 var bcrypt = require('bcrypt');
-
+var basicAuth = require('basic-auth')
 var bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
@@ -193,6 +193,25 @@ MongoClient.connect(url, function (err, db) {
             if (isSame){
               user = formatUser(user);
               res.status(200).send(user.id);
+            } else{
+              res.status(403).end()
+            }
+          });
+        }
+      });
+    });
+
+    //Basic Auth Login
+    app.get('/', function(req, res){
+      var basicAuthUser = basicAuth(req);
+      usersCollection.findOne( {email: basicAuthUser.name}, function(err, user){
+        if (!user){
+          res.status(403).end()
+        } else {
+          bcrypt.compare( basicAuthUser.pass , user.encryptedPassword, function(err, isSame) {
+            if (isSame){
+              user = formatUser(user);
+              res.status(200).send("authentication token is " + user.authToken);
             } else{
               res.status(403).end()
             }
