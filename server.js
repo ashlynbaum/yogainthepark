@@ -94,10 +94,7 @@ MongoClient.connect(url, function (err, db) {
       eventsCollection.find({}).toArray(function(err, events) {
 
         // modify events to make rename each "_id" to "id"
-        
         events = events.map(formatEvent)
-
-        console.log('error', err)
         res.send(err || events);
       });
     });
