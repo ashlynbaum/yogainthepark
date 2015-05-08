@@ -249,4 +249,7 @@ MongoClient.connect(url, function (err, db) {
   }
 });
 
-var server = app.listen(process.env.PORT || 3000);
+var port = process.env.PORT || 3000;
+var server = app.listen(port, function() {
+  console.log('server listening on '+ port);
+});
