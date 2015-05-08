@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 
 // upgrade to https
 var requireHTTPS= function(req, res, next){
-  if (!req.secure) {
+  if (req.get('X-Forwarded-Proto') === "http") {
     // for api use only
     return res.status(426).end();
     // for redirection
