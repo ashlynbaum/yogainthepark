@@ -12,7 +12,26 @@ var bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
-// *** Utilities *** 
+// upgrade to https
+var requireHTTPS= function(req, res, next){
+  if (!req.secure) {
+    // for api use only
+    return res.status(426).end();
+    // for redirection
+    // return res.redirect('https://' + req.headers.host + req.url);
+  }
+  next();
+};
+
+// only active on heroku
+/*
+ app.get('env') will check the environment variable NODE_ENV
+ if not defined: it will automatically be define as development
+ NODE_ENV = "production" is set as an environment variable in Heroku
+*/
+if (app.get('env') === "production") app.use(requireHTTPS);
+
+// *** Utilities ***
 var clone = function(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
