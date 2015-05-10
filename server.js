@@ -58,194 +58,194 @@ var createEvent = function(attr){
 
 
 var validateEmail = function validateEmail(email) {
-    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
-    return re.test(email);
+  var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+  return re.test(email);
 }
 
 MongoClient.connect(url, function (err, db) {
   if (err) {
     console.log('Unable to connect to the mongoDB server. Error:', err);
   } else {
-
     // Get the events doc
     var eventsCollection = db.collection('events')
     var usersCollection = db.collection('users')
 
-    // authorization middleware
-    var auth = function(req, res, next) {
-      req = req.req || req;
-      var authToken = req.headers.authorization;
-      if (!auth) return;
-      var parts = authToken.split(' ');
-      if ('token' != parts[0].toLowerCase()) return;
-      if (!parts[1]) return;
-      authToken = parts[1];
-      usersCollection.findOne( { authToken: authToken }, function(err, user){
-        if(user) {
-          req.user = user;
-          next()
-        } else {
-          res.status(403).end()
-        }
-      });
-    }
-
-    app.get('/events', function(req, res){
-      eventsCollection.find({}).toArray(function(err, events) {
-
-        // modify events to make rename each "_id" to "id"
-        events = events.map(formatEvent)
-        res.send(err || events);
-      });
-    });
-
-    app.get('/events/:id', function(req, res, next) {
-      var id = ObjectID(req.params.id)
-      eventsCollection.findOne({ "_id" : id }, function(err, event) {
-        if (event == null) return res.status(404).send(err);
-        event2 = formatEvent(event);
-        res.send(event2);
-      });
-    });
-
-    // Delete Event
-    app.delete('/events/:id', auth, function(req, res){
-      eventsCollection.findOne( {"_id" : ObjectID(req.params.id)}, function(err, event){
-        var creatorID = event.creatorID
-        if (creatorID.equals(req.user._id)){
-          eventsCollection.remove({ "_id" : ObjectID(req.params.id) }, function(){
-            res.status(204).end();
-          });
-        } else {
-          res.status(403).end()
-        }
-      });
-    });
-
-    // Create Event
-    app.post('/events', auth, function(req, res){
-      var eventObj = createEvent(req.body);
-      eventObj.creatorID = req.user._id;
-      eventsCollection.insert( eventObj, function(err, result) {
-        var event = result.ops[0]
-        res.status(201).send(formatEvent(event));
-      });
-    });
-
-    // update event
-    app.patch('/events/:id', auth, function(req, res){
-      eventsCollection.findOne( { "_id" : ObjectID(req.params.id) }, function(err, event){
-        var creatorID = event.creatorID;
-        if (creatorID.equals(req.user._id)){
-          eventsCollection.findAndModify( { "_id" : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
-            res.status(200).send(formatEvent(result.value));
-          });
-        } else {
-          res.status(403).end()
-        };
-      });
-    });
-
-    app.use(function(err, req, res, next) {
-      console.log(' error', err);
-      res.status(404).send(err);
-      next(err);
-
-    });
-
-
-    // Get the users doc
-    // send random auth
-    var rand = function() {
-        return Math.random().toString(16).substr(2); //base 16 for hex and subtract 2 moves the decimal place
-    };
-
-    var genToken = function() {
-        return rand() + rand() + rand() + rand(); // to make string 32 characters
-    };
-
-    var isTokenInDB = function isTokenInDB(token, cb) {
-      usersCollection.findOne( {authToken: token}, function(err, user) {
-        cb(null, user && true)
-      });
-    };
-    // check that token does not already exist
-    function genUniqueToken(cb) {
-      var token = genToken()
-      isTokenInDB(token, function(err, result) {
-        if (result) {
-          return genUniqueToken(cb);
-        } else{
-          return cb(null, token);
-        }
-      });
-    };
-
-    app.post('/signup', function(req, res){
-          var isEmail = validateEmail(req.body.email);
-          if (!isEmail){
-            res.status(422).send("Invalid email")
+    // Index user collection in assending order of authorization token
+    usersCollection.ensureIndex({"authToken": 1}, {unique: true}, function(err, created) {
+      // authorization middleware
+      var auth = function(req, res, next) {
+        req = req.req || req;
+        var authToken = req.headers.authorization;
+        if (!auth) return;
+        var parts = authToken.split(' ');
+        if ('token' != parts[0].toLowerCase()) return;
+        if (!parts[1]) return;
+        authToken = parts[1];
+        usersCollection.findOne( { authToken: authToken }, function(err, user){
+          if(user) {
+            req.user = user;
+            next()
           } else {
-            bcrypt.genSalt(10, function(err, salt) {
-              bcrypt.hash(req.body.password, salt, function(err, hash) {
-                usersCollection.findOne( {email: req.body.email}, function(err, user) {
-                  if (!user){
-                    genUniqueToken(function(err, uniqueToken) {
-                      usersCollection.insert( {email: req.body.email, encryptedPassword: hash, authToken: uniqueToken}, function(err, result){
-                        user = result.ops[0];
-                        res.status(200).send("authToken is " + uniqueToken);
-                      });
-                    });
-                  } else{
-                    res.status(422).send("This user email already exists.")
-                  }
-                });
-              });
-            });
+            res.status(403).end()
           }
         });
+      }
+
+      app.get('/events', function(req, res){
+        eventsCollection.find({}).toArray(function(err, events) {
+
+          // modify events to make rename each "_id" to "id"
+          events = events.map(formatEvent)
+          res.send(err || events);
+        });
+      });
+
+      app.get('/events/:id', function(req, res, next) {
+        var id = ObjectID(req.params.id)
+        eventsCollection.findOne({ "_id" : id }, function(err, event) {
+          if (event === null) return res.status(404).send(err);
+          event2 = formatEvent(event);
+          res.send(event2);
+        });
+      });
+
+      // Delete Event
+      app.delete('/events/:id', auth, function(req, res){
+        eventsCollection.findOne( {"_id" : ObjectID(req.params.id)}, function(err, event){
+          var creatorID = event.creatorID
+          if (creatorID.equals(req.user._id)){
+            eventsCollection.remove({ "_id" : ObjectID(req.params.id) }, function(){
+              res.status(204).end();
+            });
+          } else {
+            res.status(403).end()
+          }
+        });
+      });
+
+      // Create Event
+      app.post('/events', auth, function(req, res){
+        var eventObj = createEvent(req.body);
+        eventObj.creatorID = req.user._id;
+        eventsCollection.insert( eventObj, function(err, result) {
+          var event = result.ops[0]
+          res.status(201).send(formatEvent(event));
+        });
+      });
+
+      // update event
+      app.patch('/events/:id', auth, function(req, res){
+        eventsCollection.findOne( { "_id" : ObjectID(req.params.id) }, function(err, event){
+          var creatorID = event.creatorID;
+          if (creatorID.equals(req.user._id)){
+            eventsCollection.findAndModify( { "_id" : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
+              res.status(200).send(formatEvent(result.value));
+            });
+          } else {
+            res.status(403).end()
+          };
+        });
+      });
+
+      app.use(function(err, req, res, next) {
+        console.log(' error', err);
+        res.status(404).send(err);
+        next(err);
+
+      });
 
 
-    app.post('/login', function(req, res){
-      usersCollection.findOne( {email: req.body.email}, function(err, user){
-        if (!user){
-          res.status(403).end()
+      // Get the users doc
+      // send random auth
+      var rand = function() {
+        return Math.random().toString(16).substr(2); //base 16 for hex and subtract 2 moves the decimal place
+      };
+
+      var genToken = function() {
+        return rand() + rand() + rand() + rand(); // to make string 32 characters
+      };
+
+      // check that token does not already exist
+      // gentoken and try to insert user, account for error
+      function insertUserWithToken(user, cb){
+        var token = genToken()
+        // insert user into databse
+        user.authToken = token;
+        usersCollection.insert(user, function(err, result){
+          if (err){
+            insertUserWithToken(user, cb);
+          } else {
+            return cb(null, result.ops[0]);
+          }
+        });
+      }
+
+
+      //use an index for token generation to fix race condition bug
+      //collection.ensureIndex("username", {unique: true}, callback)
+      app.post('/signup', function(req, res){
+        var isEmail = validateEmail(req.body.email);
+        if (!isEmail){
+              res.status(422).send("Invalid email")
         } else {
-          bcrypt.compare( req.body.password , user.encryptedPassword, function(err, isSame) {
-            if (isSame){
-              user = formatUser(user);
-              res.status(200).send(user.id);
-            } else{
-              res.status(403).end()
-            }
+          bcrypt.genSalt(10, function(err, salt) {
+            bcrypt.hash(req.body.password, salt, function(err, hash) {
+              usersCollection.findOne( {email: req.body.email}, function(err, user) {
+                if (!user){
+                  user = {email: req.body.email, encryptedPassword: hash};
+                  insertUserWithToken(user, function(err, user) {
+                    res.status(200).send("authToken is " + user.authToken);
+                  });
+                } else{
+                  res.status(422).send("This user email already exists.");
+                }
+              });
+            });
           });
         }
       });
-    });
 
-    //Basic Auth Login
-    app.get('/', function(req, res){
-      var basicAuthUser = basicAuth(req);
-      if (!basicAuthUser) {
-        return res.status(403).end()
-      } else {
-        usersCollection.findOne( {email: basicAuthUser.name}, function(err, user){
+
+      app.post('/login', function(req, res){
+        usersCollection.findOne( {email: req.body.email}, function(err, user){
           if (!user){
             res.status(403).end()
           } else {
-            bcrypt.compare( basicAuthUser.pass , user.encryptedPassword, function(err, isSame) {
+            bcrypt.compare( req.body.password , user.encryptedPassword, function(err, isSame) {
               if (isSame){
                 user = formatUser(user);
-                res.status(200).send({auth_token: user.authToken});
+                res.status(200).send(user.id);
               } else{
                 res.status(403).end()
               }
             });
           }
         });
-      }
-    });
+      });
 
+      //Basic Auth Login
+      app.get('/', function(req, res){
+        var basicAuthUser = basicAuth(req);
+        if (!basicAuthUser) {
+          return res.status(403).end()
+        } else {
+          usersCollection.findOne( {email: basicAuthUser.name}, function(err, user){
+            if (!user){
+              res.status(403).end()
+            } else {
+              bcrypt.compare( basicAuthUser.pass , user.encryptedPassword, function(err, isSame) {
+                if (isSame){
+                  user = formatUser(user);
+                  res.status(200).send({auth_token: user.authToken});
+                } else{
+                  res.status(403).end()
+                }
+              });
+            }
+          });
+        }
+      });
+    });
   }
 });
 
