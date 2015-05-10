@@ -152,7 +152,7 @@ PATCH /events/{id}
 
 ```json
 {
-  "title":"event name",
+  "title":"event name"
 }
 ### Response
 
