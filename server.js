@@ -156,29 +156,36 @@ MongoClient.connect(url, function (err, db) {
 
 
       // Get the users doc
-      // send random auth
-      var rand = function() {
-        return Math.random().toString(16).substr(2); //base 16 for hex and subtract 2 moves the decimal place
-      };
 
-      var genToken = function() {
-        return rand() + rand() + rand() + rand(); // to make string 32 characters
-      };
-
-      // check that token does not already exist
-      // gentoken and try to insert user, account for error
-      function insertUserWithToken(user, cb){
-        var token = genToken()
-        // insert user into databse
-        user.authToken = token;
-        usersCollection.insert(user, function(err, result){
-          if (err){
-            insertUserWithToken(user, cb);
+      // Use node crypto to generate random bytes asyncronously
+      var genToken = function(cb) {
+        crypto.randomBytes(256, function(err, buffer) {
+          if (err) {
+            // set timout to allow for entropy to be generated
+            setTimeout(function() { genToken(cb); }, 100);
           } else {
-            return cb(null, result.ops[0]);
+            // call the callback passing the buffer converted to string as an argument
+            cb(null, buffer.toString('hex'));
           }
         });
-      }
+      };
+
+      // Generate token and TRY to insert user into collection
+      // if error, try again recursively
+      var insertUserWithToken = function(user, cb){
+        genToken(function(err, token){
+          // insert user into databse
+          user.authToken = token;
+          usersCollection.insert(user, function(err, result){
+            if (err){
+              insertUserWithToken(user, cb);
+            } else {
+              // call the callback passing the inserted user as an argument
+              cb(null, result.ops[0]);
+            }
+          });
+        });
+      };
 
 
       //use an index for token generation to fix race condition bug
