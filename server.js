@@ -10,6 +10,8 @@ var bcrypt = require('bcrypt');
 var basicAuth = require('basic-auth')
 var bodyParser = require('body-parser');
 
+var crypto = require('crypto');
+
 app.use(bodyParser.json());
 
 // upgrade to https
@@ -159,7 +161,7 @@ MongoClient.connect(url, function (err, db) {
 
       // Use node crypto to generate random bytes asyncronously
       var genToken = function(cb) {
-        crypto.randomBytes(256, function(err, buffer) {
+        crypto.randomBytes(32, function(err, buffer) {
           if (err) {
             // set timout to allow for entropy to be generated
             setTimeout(function() { genToken(cb); }, 100);
@@ -252,11 +254,22 @@ MongoClient.connect(url, function (err, db) {
           });
         }
       });
+
+      app.get('/test', function(req,res){
+        return res.status(200).end()
+      })
+
+      var port = process.env.PORT || 3000;
+      var server = app.listen(port, function() {
+        console.log('server listening on '+ port);
+        app.emit('ready');
+      });
     });
   }
 });
 
-var port = process.env.PORT || 3000;
-var server = app.listen(port, function() {
-  console.log('server listening on '+ port);
-});
+// app.on(function(eventName, callback) {
+//   if(eventName === 'ready') app.readyCallback = callback;
+// })
+
+module.exports = app
