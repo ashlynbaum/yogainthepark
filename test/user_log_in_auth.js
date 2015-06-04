@@ -26,7 +26,7 @@ beforeEach(function(done) {
   })
 })
 
-describe('users authentication', function(){
+describe('users basic auth login', function(){
   describe('GET /test',function(){
     it('should get 200 for test endpoint', function(done){
       request(app)
@@ -35,32 +35,45 @@ describe('users authentication', function(){
         .end(done)
     })
   })
-  describe('POST /login',function(){
+  describe('Get /',function(){
     var signupRequest = function() {
       return request(app)
         .post('/signup')
-        .send({"email": "a@example.com", "password": "sample"})
+        .send({"email": "a@example.com", "password": "sample"});
     };
-    it('should recieve a 200 and user id', function(done){
+    it('should recieve a 200 and user authentication token', function(done){
       signupRequest()
         .expect(200)
         .end(function(){
           request(app)
-            .post('/login')
-            .send({"email": "a@example.com", "password": "sample"})
+            .get('/')
+            .auth('a@example.com', 'sample')
             .expect(200)
             .expect(/[a-f\d]{24}/)
             .end(done)
         })
     })
+    it('should recieve a 200 and user authentication token', function(done){
+      signupRequest()
+        .expect(200)
+        .end(function(){
+          request(app)
+            .get('/')
+            .auth('a@example.com', 'sample')
+            .expect(200)
+            .expect(/[a-f\d]{24}/)
+            .end(done)
+        })
+    })
+
     it('should recieve a 403 if user does not exist', function(done){
       signupRequest()
         .expect(200)
         .end(function(){
           request(app)
-            .post('/login')
-            .send({"email": "newUser@example.com", "password": "sample"})
-            .expect(403, done)
+            .get('/')
+            .auth('nonExistantUser@example.com', 'sample')
+            .expect(403,done)
         })
     })
 
@@ -69,9 +82,9 @@ describe('users authentication', function(){
         .expect(200)
         .end(function(){
           request(app)
-            .post('/login')
-            .send({"email": "a@example.com", "password": "newpassword"})
-            .expect(403, done)
+            .get('/')
+            .auth('a@example.com', 'newpassword')
+            .expect(403,done)
         })
     })
   })
