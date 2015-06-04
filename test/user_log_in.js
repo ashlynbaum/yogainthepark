@@ -1,10 +1,9 @@
-var assert = require('chai').assert;
+var assert = require('chai').assert, expect = require('chai').expect;
 var request = require('supertest');
 var app = require('../server');
 
 before(function(done) {
   app.on('ready', done);
-
 });
 
 var db
@@ -27,7 +26,7 @@ beforeEach(function(done) {
   })
 })
 
-describe('authentication of users', function(){
+describe('users authentication', function(){
   describe('GET /test',function(){
     it('should get 200 for test endpoint', function(done){
       request(app)
@@ -36,38 +35,44 @@ describe('authentication of users', function(){
         .end(done)
     })
   })
-  describe('POST /signup',function(){
+  describe('POST /login',function(){
     var signupRequest = function() {
       return request(app)
         .post('/signup')
         .send({"email": "a@example.com", "password": "sample"});
     };
-    it('should recieve a 200 and authentication token', function(done){
-      signupRequest()
-        .expect(200)
-        .expect(/^authToken is [a-f\d]{64}$/)
-        .end(done)
-      // Send username and password
-      // recieve '200'
-      // recieve authorization token
-      // remove username from database
-    })
-    it('should recieve a 422 when emails already exists in database', function(done){
+    it('should recieve a 200 and user id', function(done){
       signupRequest()
         .expect(200)
         .end(function(){
-          signupRequest()
-            .expect(422)
+          request(app)
+            .post('/login')
+            .send({"email": "a@example.com", "password": "sample"})
+            .expect(200)
+            .expect(/[a-f\d]{24}/)
             .end(done)
         })
     })
-    it('should fail if email is not valid', function(done){
-      request(app)
-        .post('/signup')
-        .send({"email": "aaaaaa.com", "password": "sample"})
-        .expect(422)
-        .expect("Invalid email")
-        .end(done)
+    it('should recieve a 403 if user does not exist', function(done){
+      signupRequest()
+        .expect(200)
+        .end(function(){
+          request(app)
+            .post('/login')
+            .send({"email": "newUser@example.com", "password": "sample"})
+            .expect(403,done)
+        })
+    })
+
+    it('should recieve a 402 and user password does not match', function(done){
+      signupRequest()
+        .expect(200)
+        .end(function(){
+          request(app)
+            .post('/login')
+            .send({"email": "a@example.com", "password": "newpassword"})
+            .expect(403,done)
+        })
     })
   })
 })
