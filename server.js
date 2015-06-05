@@ -1,26 +1,28 @@
-var app = require('express')()
+var app = require('express')();
 
-var MongoClient = require('mongodb').MongoClient
+var MongoClient = require('mongodb').MongoClient;
 // Connection URL for database
 
-var url = ( process.env.MONGOLAB_URI  || 'mongodb://localhost:27017/yoga' );
+var url = ( process.env.MONGOLAB_URI || 'mongodb://localhost:27017/yoga' );
 
 var ObjectID = require('mongodb').ObjectID;
 var bcrypt = require('bcrypt');
-var basicAuth = require('basic-auth')
+var basicAuth = require('basic-auth');
 var bodyParser = require('body-parser');
 
 var crypto = require('crypto');
 
 app.use(bodyParser.json());
 
-// upgrade to https
-var requireHTTPS= function(req, res, next){
-  if (req.get('X-Forwarded-Proto') === "http") {
-    // for api use only
+/*
+ * upgrade to https
+ * for api use only
+ * for redirection
+ * return res.redirect('https://' + req.headers.host + req.url);
+ */
+var requireHTTPS = function(req, res, next) {
+  if (req.get('X-Forwarded-Proto') === 'http') {
     return res.status(426).end();
-    // for redirection
-    // return res.redirect('https://' + req.headers.host + req.url);
   }
   next();
 };
@@ -31,79 +33,81 @@ var requireHTTPS= function(req, res, next){
  if not defined: it will automatically be define as development
  NODE_ENV = "production" is set as an environment variable in Heroku
 */
-if (app.get('env') === "production") app.use(requireHTTPS);
+if (app.get('env') === 'production') app.use(requireHTTPS);
 
 // *** Utilities ***
 var clone = function(obj) {
   return JSON.parse(JSON.stringify(obj));
-}
-
-// replaces the "_id" attribute with "id"
-function formatEvent(event){
-  // clone prevent function side effect
-  var e = clone(event);
-
-  e.id = e._id
-  delete e._id
-
-  return e;
 };
 
-var formatUser = formatEvent
+// replaces the "_id" attribute with "id"
+// clone prevent function side effect
+function formatEvent(event) {
+  var e = clone(event);
 
-var createEvent = function(attr){
+  e.id = e._id;
+  delete e._id;
+
+  return e;
+}
+
+var formatUser = formatEvent;
+
+var createEvent = function(attr) {
   return {
     title: attr.title,
     creatorID: null
-  }
+  };
 };
 
 
 var validateEmail = function validateEmail(email) {
   var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
   return re.test(email);
-}
+};
 
-MongoClient.connect(url, function (err, db) {
+MongoClient.connect(url, function(err, db) {
   if (err) {
     console.log('Unable to connect to the mongoDB server. Error:', err);
   } else {
-    // Get the events doc
-    var eventsCollection = db.collection('events')
-    var usersCollection = db.collection('users')
+    var eventsCollection = db.collection('events');
+    var usersCollection = db.collection('users');
 
     // Index user collection in assending order of authorization token
-    usersCollection.ensureIndex({"authToken": 1}, {unique: true}, function(err, created) {
+    usersCollection.ensureIndex({'authToken': 1}, {unique: true}, function(err, created) {
+      if (err) {
+        throw new Error('Unable to ensure authToken index.');
+      }
       // authorization middleware
       var auth = function(req, res, next) {
         req = req.req || req;
         var authToken = req.headers.authorization;
         if (!auth) return;
         var parts = authToken.split(' ');
-        if ('token' != parts[0].toLowerCase()) return;
+        if (parts[0].toLowerCase() !== 'token') return;
         if (!parts[1]) return;
         authToken = parts[1];
-        usersCollection.findOne( { authToken: authToken }, function(err, user){
-          if(user) {
+        usersCollection.findOne( { authToken: authToken }, function(err, user) {
+          if (user) {
             req.user = user;
-            next()
+            next();
           } else {
-            res.status(403).end()
+            res.status(403).end();
           }
         });
-      }
+      };
 
       app.get('/events', function(req, res){
         eventsCollection.find({}).toArray(function(err, events) {
 
           // modify events to make rename each "_id" to "id"
-          events = events.map(formatEvent)
+          events = events.map(formatEvent);
           res.send(err || events);
         });
       });
 
       app.get('/events/:id', function(req, res, next) {
-        var id = ObjectID(req.params.id)
+        var id = ObjectID(req.params.id);
         eventsCollection.findOne({ "_id" : id }, function(err, event) {
           if (event === null) return res.status(404).send(err);
           event2 = formatEvent(event);
@@ -113,14 +117,14 @@ MongoClient.connect(url, function (err, db) {
 
       // Delete Event
       app.delete('/events/:id', auth, function(req, res){
-        eventsCollection.findOne( {"_id" : ObjectID(req.params.id)}, function(err, event){
+        eventsCollection.findOne({'_id' : ObjectID(req.params.id)}, function(err, event) {
           var creatorID = event.creatorID
           if (creatorID.equals(req.user._id)){
-            eventsCollection.remove({ "_id" : ObjectID(req.params.id) }, function(){
+            eventsCollection.remove({'_id' : ObjectID(req.params.id) }, function() {
               res.status(204).end();
             });
           } else {
-            res.status(403).end()
+            res.status(403).end();
           }
         });
       });
@@ -139,8 +143,8 @@ MongoClient.connect(url, function (err, db) {
       app.patch('/events/:id', auth, function(req, res){
         eventsCollection.findOne( { "_id" : ObjectID(req.params.id) }, function(err, event){
           var creatorID = event.creatorID;
-          if (creatorID.equals(req.user._id)){
-            eventsCollection.findAndModify( { "_id" : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
+          if (creatorID.equals(req.user._id)) {
+            eventsCollection.findAndModify( { '_id' : ObjectID(req.params.id) } , {}, {$set: req.body}, {new: true}, function(err, result){
               res.status(200).send(formatEvent(result.value));
             });
           } else {
@@ -194,19 +198,19 @@ MongoClient.connect(url, function (err, db) {
       //collection.ensureIndex("username", {unique: true}, callback)
       app.post('/signup', function(req, res){
         var isEmail = validateEmail(req.body.email);
-        if (!isEmail){
-              res.status(422).send("Invalid email")
+        if (!isEmail) {
+          res.status(422).send('Invalid email');
         } else {
           bcrypt.genSalt(10, function(err, salt) {
             bcrypt.hash(req.body.password, salt, function(err, hash) {
-              usersCollection.findOne( {email: req.body.email}, function(err, user) {
-                if (!user){
+              usersCollection.findOne({email: req.body.email}, function(err, user) {
+                if (!user) {
                   user = {email: req.body.email, encryptedPassword: hash};
                   insertUserWithToken(user, function(err, user) {
-                    res.status(200).send("authToken is " + user.authToken);
+                    res.status(200).send('authToken is ' + user.authToken);
                   });
                 } else{
-                  res.status(422).send("This user email already exists.");
+                  res.status(422).send('This user email already exists.');
                 }
               });
             });
@@ -215,17 +219,17 @@ MongoClient.connect(url, function (err, db) {
       });
 
 
-      app.post('/login', function(req, res){
+      app.post('/login', function(req, res) {
         usersCollection.findOne( {email: req.body.email}, function(err, user){
           if (!user){
-            res.status(403).end()
+            res.status(403).end();
           } else {
-            bcrypt.compare( req.body.password , user.encryptedPassword, function(err, isSame) {
-              if (isSame){
+            bcrypt.compare( req.body.password, user.encryptedPassword, function(err, isSame) {
+              if (isSame) {
                 user = formatUser(user);
                 res.status(200).send(user.id);
               } else{
-                res.status(403).end()
+                res.status(403).end();
               }
             });
           }
@@ -236,18 +240,18 @@ MongoClient.connect(url, function (err, db) {
       app.get('/', function(req, res){
         var basicAuthUser = basicAuth(req);
         if (!basicAuthUser) {
-          return res.status(403).end()
+          return res.status(403).end();
         } else {
-          usersCollection.findOne( {email: basicAuthUser.name}, function(err, user){
-            if (!user){
-              res.status(403).end()
+          usersCollection.findOne( {email: basicAuthUser.name}, function(err, user) {
+            if (!user) {
+              res.status(403).end();
             } else {
-              bcrypt.compare( basicAuthUser.pass , user.encryptedPassword, function(err, isSame) {
-                if (isSame){
+              bcrypt.compare( basicAuthUser.pass, user.encryptedPassword, function(err, isSame) {
+                if (isSame) {
                   user = formatUser(user);
                   res.status(200).send({auth_token: user.authToken});
-                } else{
-                  res.status(403).end()
+                } else {
+                  res.status(403).end();
                 }
               });
             }
@@ -255,12 +259,12 @@ MongoClient.connect(url, function (err, db) {
         }
       });
 
-      app.get('/test', function(req,res){
-        return res.status(200).end()
-      })
+      app.get('/test', function(req, res) {
+        return res.status(200).end();
+      });
 
       var port = process.env.PORT || 3000;
-      var server = app.listen(port, function() {
+      app.listen(port, function() {
         console.log('server listening on '+ port);
         app.emit('ready');
       });
@@ -272,4 +276,4 @@ MongoClient.connect(url, function (err, db) {
 //   if(eventName === 'ready') app.readyCallback = callback;
 // })
 
-module.exports = app
+module.exports = app;
