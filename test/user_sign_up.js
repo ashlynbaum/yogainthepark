@@ -1,32 +1,37 @@
 var assert = require('chai').assert;
 var request = require('supertest');
-var app = require('../server');
-
-before(function(done) {
-  app.on('ready', done);
-});
-
-var db;
-// define database
-before(function(done) {
-  var MongoClient = require('mongodb').MongoClient;
-  // Connection URL for database
-  var url = ( process.env.MONGOLAB_URI || 'mongodb://localhost:27017/yoga' );
-  // hook to database before each hook
-  MongoClient.connect(url, function(err, database) {
-    db = database;
-    done();
-  });
-});
+var server = require('../server');
 
 
-beforeEach(function(done) {
-  db.dropDatabase(function() {
-    done();
-  });
-});
 
 describe('authentication of users', function() {
+  var app;
+  before(function(done) {
+    server.start(false, function(err, appStarted) {
+      app = appStarted;
+      done();
+    });
+  });
+
+  var db;
+  // define database
+  before(function(done) {
+    var MongoClient = require('mongodb').MongoClient;
+    // Connection URL for database
+    var url = ( process.env.MONGOLAB_URI || 'mongodb://localhost:27017/yoga' );
+    // hook to database before each hook
+    MongoClient.connect(url, function(err, database) {
+      db = database;
+      done();
+    });
+  });
+
+
+  beforeEach(function(done) {
+    db.dropDatabase(function() {
+      done();
+    });
+  });
   describe('GET /test', function() {
     it('should get 200 for test endpoint', function(done) {
       request(app)

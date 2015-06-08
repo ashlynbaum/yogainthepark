@@ -1,4 +1,4 @@
-var app = require('express')();
+var express = require('express');
 
 var MongoClient = require('mongodb').MongoClient;
 // Connection URL for database
@@ -11,29 +11,6 @@ var basicAuth = require('basic-auth');
 var bodyParser = require('body-parser');
 
 var crypto = require('crypto');
-
-app.use(bodyParser.json());
-
-/*
- * upgrade to https
- * for api use only
- * for redirection
- * return res.redirect('https://' + req.headers.host + req.url);
- */
-var requireHTTPS = function(req, res, next) {
-  if (req.get('X-Forwarded-Proto') === 'http') {
-    return res.status(426).end();
-  }
-  next();
-};
-
-// only active on heroku
-/*
- app.get('env') will check the environment variable NODE_ENV
- if not defined: it will automatically be define as development
- NODE_ENV = "production" is set as an environment variable in Heroku
-*/
-if (app.get('env') === 'production') app.use(requireHTTPS);
 
 // *** Utilities ***
 var clone = function(obj) {
@@ -65,6 +42,35 @@ var validateEmail = function validateEmail(email) {
   var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
   return re.test(email);
 };
+
+/*
+ * upgrade to https
+ * for api use only
+ * for redirection
+ * return res.redirect('https://' + req.headers.host + req.url);
+ */
+var requireHTTPS = function(req, res, next) {
+  if (req.get('X-Forwarded-Proto') === 'http') {
+    return res.status(426).end();
+  }
+  next();
+};
+
+
+module.exports.start = function(shouldListen, callback) {
+var app = express();
+app.use(bodyParser.json());
+
+
+// only active on heroku
+/*
+ app.get('env') will check the environment variable NODE_ENV
+ if not defined: it will automatically be define as development
+ NODE_ENV = "production" is set as an environment variable in Heroku
+*/
+if (app.get('env') === 'production') app.use(requireHTTPS);
+
+
 
 MongoClient.connect(url, function(err, db) {
   if (err) {
@@ -263,11 +269,14 @@ MongoClient.connect(url, function(err, db) {
         return res.status(200).end();
       });
 
-      var port = process.env.PORT || 3000;
-      app.listen(port, function() {
-        console.log('server listening on '+ port);
-        app.emit('ready');
-      });
+      if(shouldListen) {
+        var port = process.env.PORT || 3000;
+        app.listen(port, function(err) {
+          if (err) { console.error(err)}
+          console.log('server listening on '+ port);
+        });
+      }
+      callback(null, app);
     });
   }
 });
@@ -276,4 +285,4 @@ MongoClient.connect(url, function(err, db) {
 //   if(eventName === 'ready') app.readyCallback = callback;
 // })
 
-module.exports = app;
+}
