@@ -224,24 +224,6 @@ MongoClient.connect(url, function(err, db) {
         }
       });
 
-
-      app.post('/login', function(req, res) {
-        usersCollection.findOne( {email: req.body.email}, function(err, user){
-          if (!user){
-            res.status(403).end();
-          } else {
-            bcrypt.compare( req.body.password, user.encryptedPassword, function(err, isSame) {
-              if (isSame) {
-                user = formatUser(user);
-                res.status(200).send(user.id);
-              } else{
-                res.status(403).end();
-              }
-            });
-          }
-        });
-      });
-
       //Basic Auth Login
       app.get('/', function(req, res){
         var basicAuthUser = basicAuth(req);
