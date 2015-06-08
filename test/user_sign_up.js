@@ -49,7 +49,9 @@ describe('authentication of users', function() {
     it('should recieve a 200 and authentication token', function(done) {
       signupRequest()
         .expect(200)
-        .expect(/^authToken is [a-f\d]{64}$/)
+        .expect(function(res){
+          assert.match(res.body.authToken, /[a-f\d]{64}/);
+        })
         .end(done);
     });
     it('should recieve a 422 when emails already exists in database', function(done) {

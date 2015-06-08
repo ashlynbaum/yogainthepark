@@ -210,7 +210,8 @@ module.exports.start = function(shouldListen, callback) {
                   if (!user) {
                     user = {email: req.body.email, encryptedPassword: hash};
                     insertUserWithToken(user, function(err, user) {
-                      res.status(200).send('authToken is ' + user.authToken);
+                      // res.status(200).send('authToken is ' + user.authToken);
+                      res.status(200).send({'authToken': user.authToken})
                     });
                   } else {
                     res.status(422).send('This user email already exists.');
