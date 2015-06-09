@@ -26,7 +26,7 @@ describe('Events', function() {
           .end(function(err, res) {
             request(app)
               .post('/events')
-              .set('X-Auth-Token', res.body.authToken)
+              .set('Authorization', 'Token ' + res.body.authToken)
               .send({'title': 'first example event'})
               .expect(201)
               .expect('Content-Type', /json/)
