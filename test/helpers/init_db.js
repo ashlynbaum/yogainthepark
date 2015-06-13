@@ -1,11 +1,8 @@
-var initDb = function() {
-  before(function(done) {
-    server.start(false, function(err, appStarted) {
-      global.app = appStarted;
-      done();
-    });
-  });
+var assert = require('chai').assert;
+var request = require('supertest');
+var server = require('../../server');
 
+var initDb = function(context) {
   var db;
   // define database
   before(function(done) {
@@ -25,6 +22,14 @@ var initDb = function() {
       done();
     });
   });
+
+  before(function(done) {
+    server.start(false, function(err, appStarted) {
+      context.app = appStarted;
+      done();
+    });
+  });
+
 };
 
 exports.initDb = initDb;
