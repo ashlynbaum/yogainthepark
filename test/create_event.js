@@ -1,4 +1,7 @@
-var assert = require('chai').assert;
+var chai = require('chai');
+var assert = chai.assert;
+var expect = chai.expect;
+var should = chai.should();
 var request = require('supertest');
 var server = require('../server');
 var initApp = require('./helpers/init_db');
@@ -35,8 +38,20 @@ describe('Events', function() {
               .send({'title': 'first example event'})
               .expect(201)
               .expect('Content-Type', /json/)
-              .end(done);
+              .end( function(err, res) {
+                if (err) { return done(err) }
+                expect(res.body).to.be.an('object').and.to.have.property('title', 'first example event');
+                done();
+              });
           });
+      });
+    });
+    describe('when not authorized', function() {
+      it('should return 401 unauthorized', function(done) {
+        request(context.app)
+          .post('/events')
+          .expect(401)
+          .end(done);
       });
     });
   });

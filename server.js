@@ -87,7 +87,7 @@ module.exports.start = function(shouldListen, callback) {
         var auth = function(req, res, next) {
           req = req.req || req;
           var authToken = req.headers.authorization;
-          if (!auth) return;
+          if (!authToken) return res.status(401).end();
           var parts = authToken.split(' ');
           if (parts[0].toLowerCase() !== 'token') return;
           if (!parts[1]) return;
