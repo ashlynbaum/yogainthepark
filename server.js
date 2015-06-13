@@ -265,3 +265,9 @@ module.exports.start = function(shouldListen, callback) {
 //   if(eventName === 'ready') app.readyCallback = callback;
 // })
 };
+
+if(require.main === module) {
+  module.exports.start(true, function() {
+    console.log('App is connected to database, index is present.');
+  });
+}
