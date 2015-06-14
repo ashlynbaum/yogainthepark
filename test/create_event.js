@@ -11,15 +11,6 @@ describe('Events', function() {
 
   initApp.initDb(context);
 
-  describe('GET /test', function() {
-    it('should get 200 for test endpoint', function(done) {
-      request(context.app)
-        .get('/test')
-        .expect(200)
-        .end(done);
-    });
-  });
-
   describe('POST /events', function() {
     describe('when authorized', function() {
       var signupRequest = function() {

@@ -34,14 +34,6 @@ describe('users basic auth login', function() {
     });
   });
 
-  describe('GET /test', function() {
-    it('should get 200 for test endpoint', function(done) {
-      request(app)
-        .get('/test')
-        .expect(200)
-        .end(done);
-    });
-  });
   describe('Get /' ,function() {
     var signupRequest = function() {
       return request(app)

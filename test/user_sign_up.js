@@ -31,14 +31,7 @@ describe('authentication of users', function() {
       done();
     });
   });
-  describe('GET /test', function() {
-    it('should get 200 for test endpoint', function(done) {
-      request(app)
-        .get('/test')
-        .expect(200)
-        .end(done);
-    });
-  });
+
   describe('POST /signup', function() {
     var signupRequest = function() {
       return request(app)

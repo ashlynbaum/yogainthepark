@@ -38,15 +38,6 @@ describe('Events', function() {
     });
   });
 
-  describe('GET /test', function() {
-    it('should get 200 for test endpoint', function(done) {
-      request(context.app)
-        .get('/test')
-        .expect(200)
-        .end(done);
-    });
-  });
-
   describe('GET /events', function() {
     describe('list all events', function() {
       it('should create first example event', function(done) {

@@ -248,10 +248,6 @@ module.exports.start = function(shouldListen, callback) {
           }
         });
 
-        app.get('/test', function(req, res) {
-          return res.status(200).end();
-        });
-
         if (shouldListen) {
           var port = process.env.PORT || 3000;
           app.listen(port, function(err) {
