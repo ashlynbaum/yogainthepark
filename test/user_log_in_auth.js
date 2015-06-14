@@ -34,7 +34,7 @@ describe('users basic auth login', function() {
     });
   });
 
-  describe('Get /' ,function() {
+  describe('GET /', function() {
     var signupRequest = function() {
       return request(app)
         .post('/signup')
