@@ -4,7 +4,6 @@ var expect = chai.expect;
 var should = chai.should();
 var request = require('supertest');
 var server = require('../server');
-var initApp = require('./helpers/init_db');
 
 describe('Events', function() {
   var context = {};
@@ -47,8 +46,8 @@ describe('Events', function() {
     });
   });
 
-  describe('GET /events', function() {
-    describe('list all events', function() {
+  describe('delete /events/:id', function() {
+    describe('delete events', function() {
       it('should create first example event', function(done) {
         request(context.app)
           .post('/signup')
