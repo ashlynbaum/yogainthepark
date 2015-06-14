@@ -3,7 +3,6 @@ var request = require('supertest');
 var server = require('../server');
 
 
-
 describe('authentication of users', function() {
   var app;
   before(function(done) {
@@ -49,7 +48,7 @@ describe('authentication of users', function() {
     it('should recieve a 200 and authentication token', function(done) {
       signupRequest()
         .expect(200)
-        .expect(function(res){
+        .expect(function(res) {
           assert.match(res.body.authToken, /[a-f\d]{64}/);
         })
         .end(done);
