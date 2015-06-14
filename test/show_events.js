@@ -5,8 +5,14 @@ var should = chai.should();
 var request = require('supertest');
 var server = require('../server');
 var initApp = require('./helpers/init_db');
+var databaseCleaner = require('./helpers/database_cleaner');
 
 describe('Events', function() {
+  var cleaner = databaseCleaner();
+
+  before(cleaner.init);
+  beforeEach(cleaner.clean);
+
   var context = {};
 
   var db;

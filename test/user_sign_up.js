@@ -1,9 +1,15 @@
 var assert = require('chai').assert;
 var request = require('supertest');
 var server = require('../server');
+var databaseCleaner = require('./helpers/database_cleaner');
 
 
 describe('authentication of users', function() {
+  var cleaner = databaseCleaner();
+
+  before(cleaner.init);
+  beforeEach(cleaner.clean);
+
   var app;
   before(function(done) {
     server.start(false, function(err, appStarted) {
