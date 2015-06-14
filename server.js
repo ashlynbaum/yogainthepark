@@ -159,8 +159,11 @@ module.exports.start = function(shouldListen, callback) {
 
         app.use(function(err, req, res, next) {
           console.log(' error', err);
-          res.status(404).send(err);
-          next(err);
+          if (err.message === 'Argument passed in must be a single String of 12 bytes or a string of 24 hex characters') {
+            res.status(404).send(err);
+          } else {
+            res.status(500).send(err);
+          }
         });
 
 
