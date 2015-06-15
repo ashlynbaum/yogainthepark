@@ -1,8 +1,7 @@
 var chai = require('chai');
 var expect = chai.expect;
-var request = require('supertest');
-var server = require('../server');
 var databaseCleaner = require('./helpers/database_cleaner');
+var requestAppWrapper = require('./helpers/request_app.js');
 
 describe('Events', function() {
   var cleaner = databaseCleaner();
@@ -10,15 +9,9 @@ describe('Events', function() {
   before(cleaner.init);
   beforeEach(cleaner.clean);
 
-  var cont = {};
+  var requestApp = requestAppWrapper();
 
-  before(function(done) {
-    server.start(false, function(err, appStarted) {
-      if (err) { return done(err); }
-      cont.app = appStarted;
-      done();
-    });
-  });
+  before(requestApp.startApp);
 
 
   describe('delete events', function() {
@@ -26,14 +19,14 @@ describe('Events', function() {
     var eventID;
 
     var createEvent = function(done) {
-      request(cont.app)
+      requestApp.r()
         .post('/signup')
         .send({'email': 'a@example.com', 'password': 'sample'})
         .end(function(err, res) {
           if (err) { return done(err); }
           authToken = res.body.authToken;
 
-          request(cont.app)
+          requestApp.r()
             .post('/events')
             .set('Authorization', 'Token ' + res.body.authToken)
             .send({'title': 'First example event'})
@@ -50,7 +43,7 @@ describe('Events', function() {
 
     describe('response', function() {
       var deleteRequest = function() {
-        return request(cont.app)
+        return requestApp.r()
           .delete('/events/' + eventID);
       };
 
@@ -84,7 +77,7 @@ describe('Events', function() {
           });
 
           it('should not display event in list of events', function(done) {
-            request(cont.app)
+            requestApp.r()
               .get('/events')
               .set('Authorization', 'Token ' + authToken)
               // .expect('Content-Type', /json/)
@@ -96,7 +89,7 @@ describe('Events', function() {
               });
           });
           it('should return 401 and error if eventID does not exist', function(done) {
-            request(cont.app)
+            requestApp.r()
               .delete('/events/123456789123')
               .set('Authorization', 'Token ' + authToken)
               .expect(403)
