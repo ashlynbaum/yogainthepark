@@ -1,11 +1,7 @@
 var chai = require('chai');
-var assert = chai.assert;
 var expect = chai.expect;
-var should = chai.should();
-var request = require('supertest');
-var server = require('../server');
-var initApp = require('./helpers/init_db');
 var databaseCleaner = require('./helpers/database_cleaner');
+var requestAppWrapper = require('./helpers/request_app');
 
 describe('Events', function() {
   var cleaner = databaseCleaner();
@@ -13,96 +9,70 @@ describe('Events', function() {
   before(cleaner.init);
   beforeEach(cleaner.clean);
 
-  var context = {};
+  var requestApp = requestAppWrapper();
 
-  var db;
-  // define database
-  before(function(done) {
-    var MongoClient = require('mongodb').MongoClient;
-    // Connection URL for database
-    var url = ( process.env.MONGOLAB_URI || 'mongodb://localhost:27017/yoga' );
-    // hook to database before each hook
-    MongoClient.connect(url, function(err, database) {
-      if (err) { return done(err) }
-      db = database;
-      done();
+  before(requestApp.startApp);
+
+  describe('show single event', function() {
+    var authToken;
+    var eventID;
+
+    var createEvent = function(email, title, done) {
+      requestApp.r()
+        .post('/signup')
+        .send({'email': email, 'password': 'sample'})
+        .end(function(err, res) {
+          if (err) { return done(err); }
+          authToken = res.body.authToken;
+
+          requestApp.r()
+            .post('/events')
+            .set('Authorization', 'Token ' + res.body.authToken)
+            .send({'title': title + ' example event'})
+            .end(function(err, eventResponse) {
+              if (err) return done(err);
+
+              eventID = eventResponse.body.id;
+              done();
+            });
+        });
+    };
+    beforeEach(function(done) {
+      createEvent('a@example.com', 'First', done);
     });
-  });
-
-
-  before(function(done) {
-    db.dropDatabase(function() {
-      done();
+    beforeEach(function(done) {
+      createEvent('a2@example.com', 'Second', done);
     });
-  });
 
-  before(function(done) {
-    server.start(false, function(err, appStarted) {
-      if (err) { return done(err) }
-      context.app = appStarted;
-      done();
-    });
-  });
-
-  describe('GET /events', function() {
-    describe('list all events', function() {
-      it('should create first example event', function(done) {
-        request(context.app)
-          .post('/signup')
-          .send({'email': 'a@example.com', 'password': 'sample'})
-          .expect(200)
-          .end(function(err, res) {
-            if (err) { return done(err); }
-            request(context.app)
-              .post('/events')
-              .set('Authorization', 'Token ' + res.body.authToken)
-              .send({'title': 'First example event'})
-              .expect(201)
-              .expect('Content-Type', /json/)
-              .end(done);
-          });
+    describe('response', function() {
+      context('request second example event', function() {
+        it('should list event', function(done) {
+          requestApp.r()
+            .get('/events/' + eventID)
+            .expect('Content-Type', /json/)
+            .end(function(err, res) {
+              if (err) { return done(); }
+              expect(res.body).to.be.an('object').and.to.have.property('title', 'Second example event');
+              expect(res.body).to.have.property('id', context.eventID);
+              done();
+            });
+        });
       });
-      it('should create second example event', function(done) {
-        request(context.app)
-          .post('/signup')
-          .send({'email': 'a2@example.com', 'password': 'sample'})
-          .expect(200)
-          .end(function(err, res) {
-            if (err) { return done(err); }
-            request(context.app)
-              .post('/events')
-              .set('Authorization', 'Token ' + res.body.authToken)
-              .send({'title': 'Second example event'})
-              .expect(201)
-              .expect('Content-Type', /json/)
-              .end(function(err, res){
-                // defining ID for testing single event listing
-                context.eventID = res.body.id;
-                done();
-              });
-          });
+      context('event ID does not exist', function() {
+        it('should return 404', function(done) {
+          requestApp.r()
+            .get('/events/' + 123456789123)
+            .expect(404)
+            .end(done);
+        });
       });
-      it('should list event for second example event', function(done) {
-        request(context.app)
-          .get('/events/' + context.eventID)
-          .expect('Content-Type', /json/)
-          .end(function(err, res) {
-            expect(res.body).to.be.an('object').and.to.have.property('title', 'Second example event');
-            expect(res.body).to.have.property('id', context.eventID);
-            done();
-          });
-      });
-      it('should return 404 and error if eventID does not exist', function(done){
-        request(context.app)
-          .get('/events/' + 123456789123)
-          .expect(404)
-          .end(done);
-      });
-      it('should return 404 if ID is not 12 characters', function(done){
-        request(context.app)
-          .get('/events/' + 12345678912)
-          .expect(404)
-          .end(done);
+      context('event ID is not 12 characters', function() {
+        it('should return 404', function(done) {
+          requestApp.r()
+            .get('/events/' + 12345678912)
+            .expect(404)
+            .end(done);
+        });
       });
     });
   });
