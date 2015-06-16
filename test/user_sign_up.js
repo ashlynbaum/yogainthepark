@@ -1,73 +1,55 @@
-var assert = require('chai').assert;
-var request = require('supertest');
-var server = require('../server');
+var chai = require('chai');
+var assert = chai.assert;
+var expect = chai.expect;
 var databaseCleaner = require('./helpers/database_cleaner');
+var requestAppWrapper = require('./helpers/request_app');
 
-
-describe('authentication of users', function() {
+describe('user sign up', function() {
   var cleaner = databaseCleaner();
 
   before(cleaner.init);
   beforeEach(cleaner.clean);
 
-  var app;
-  before(function(done) {
-    server.start(false, function(err, appStarted) {
-      app = appStarted;
-      done();
-    });
-  });
+  var requestApp = requestAppWrapper();
 
-  var db;
-  // define database
-  before(function(done) {
-    var MongoClient = require('mongodb').MongoClient;
-    // Connection URL for database
-    var url = ( process.env.MONGOLAB_URI || 'mongodb://localhost:27017/yoga' );
-    // hook to database before each hook
-    MongoClient.connect(url, function(err, database) {
-      db = database;
-      done();
-    });
-  });
+  before(requestApp.startApp);
 
-
-  beforeEach(function(done) {
-    db.dropDatabase(function() {
-      done();
-    });
-  });
-
-  describe('POST /signup', function() {
+  describe('response', function() {
     var signupRequest = function() {
-      return request(app)
+      return requestApp.r()
         .post('/signup')
         .send({'email': 'a@example.com', 'password': 'sample'});
     };
-    it('should recieve a 200 and authentication token', function(done) {
-      signupRequest()
-        .expect(200)
-        .expect(function(res) {
-          assert.match(res.body.authToken, /[a-f\d]{64}/);
-        })
-        .end(done);
+    context('on success', function() {
+      it('should recieve a 200 and authentication token', function(done) {
+        signupRequest()
+          .expect(200)
+          .expect(function(res) {
+            assert.match(res.body.authToken, /[a-f\d]{64}/);
+          })
+          .end(done);
+      });
     });
-    it('should recieve a 422 when emails already exists in database', function(done) {
-      signupRequest()
-        .expect(200)
-        .end(function() {
-          signupRequest()
-            .expect(422)
-            .end(done);
-        });
+    context('email already exists in database', function() {
+      it('should recieve 422', function(done) {
+        signupRequest()
+          .expect(200)
+          .end(function() {
+            signupRequest()
+              .expect(422)
+              .end(done);
+          });
+      });
     });
-    it('should fail if email is not valid', function(done) {
-      request(app)
-        .post('/signup')
-        .send({'email': 'aaaaaa.com', 'password': 'sample'})
-        .expect(422)
-        .expect('Invalid email')
-        .end(done);
+    context('email does not have valid format', function() {
+      it('should recieve 422', function(done) {
+        requestApp.r()
+          .post('/signup')
+          .send({'email': 'aaaaaa.com', 'password': 'sample'})
+          .expect(422)
+          .expect('Invalid email')
+          .end(done);
+      });
     });
   });
 });
