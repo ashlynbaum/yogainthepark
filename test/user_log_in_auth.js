@@ -1,90 +1,61 @@
-var assert = require('chai').assert;
-var expect = require('chai').expect;
-var request = require('supertest');
-var server = require('../server');
+var chai = require('chai');
+var expect = chai.expect;
+var databaseCleaner = require('./helpers/database_cleaner');
+var requestAppWrapper = require('./helpers/request_app');
 
+describe('basic auth login', function() {
+  var cleaner = databaseCleaner();
 
+  before(cleaner.init);
+  beforeEach(cleaner.clean);
 
-describe('users basic auth login', function() {
-  var app;
-  before(function(done) {
-    server.start(false, function(err, appStarted) {
-      app = appStarted;
-      done();
-    });
-  });
+  var requestApp = requestAppWrapper();
 
-  var db;
-  // define database
-  before(function(done) {
-    var MongoClient = require('mongodb').MongoClient;
-    // Connection URL for database
-    var url = ( process.env.MONGOLAB_URI || 'mongodb://localhost:27017/yoga' );
-    // hook to database before each hook
-    MongoClient.connect(url, function(err, database) {
-      db = database;
-      done();
-    });
-  });
+  before(requestApp.startApp);
 
-
-  beforeEach(function(done) {
-    db.dropDatabase(function() {
-      done();
-    });
-  });
-
-  describe('GET /', function() {
+  describe('response', function() {
     var signupRequest = function() {
-      return request(app)
+      return requestApp.r()
         .post('/signup')
         .send({'email': 'a@example.com', 'password': 'sample'});
     };
-    it('should recieve a 200 and user authentication token', function(done) {
-      signupRequest()
-        .expect(200)
-        .end(function() {
-          request(app)
-            .get('/')
-            .auth('a@example.com', 'sample')
-            .expect(200)
-            .expect(/[a-f\d]{24}/)
-            .end(done);
-        });
+    context('on success', function() {
+      it('should recieve a 200 and user authentication token', function(done) {
+        signupRequest()
+          .expect(200)
+          .end(function() {
+            requestApp.r()
+              .get('/')
+              .auth('a@example.com', 'sample')
+              .expect(200)
+              .expect(/[a-f\d]{24}/)
+              .end(done);
+          });
+      });
     });
-    it('should recieve a 200 and user authentication token', function(done) {
-      signupRequest()
-        .expect(200)
-        .end(function() {
-          request(app)
-            .get('/')
-            .auth('a@example.com', 'sample')
-            .expect(200)
-            .expect(/[a-f\d]{24}/)
-            .end(done);
-        });
+    context('user does not exist in databse', function() {
+      it('should recieve 403', function(done) {
+        signupRequest()
+          .expect(200)
+          .end(function() {
+            requestApp.r()
+              .get('/')
+              .auth('nonExistantUser@example.com', 'sample')
+              .expect(403, done);
+          });
+      });
     });
-
-    it('should recieve a 403 if user does not exist', function(done) {
-      signupRequest()
-        .expect(200)
-        .end(function() {
-          request(app)
-            .get('/')
-            .auth('nonExistantUser@example.com', 'sample')
-            .expect(403, done);
-        });
-    });
-
-    it('should recieve a 403 and user password does not match', function(done) {
-      signupRequest()
-        .expect(200)
-        .end(function() {
-          request(app)
-            .get('/')
-            .auth('a@example.com', 'newpassword')
-            .expect(403, done);
-        });
+    context('submitted password does not match with database', function(){
+      it('should recieve a 403', function(done) {
+        signupRequest()
+          .expect(200)
+          .end(function() {
+            requestApp.r()
+              .get('/')
+              .auth('a@example.com', 'newpassword')
+              .expect(403, done);
+          });
+      });
     });
   });
 });
