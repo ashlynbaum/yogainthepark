@@ -1,7 +1,7 @@
 var chai = require('chai');
 var expect = chai.expect;
 var databaseCleaner = require('./helpers/database_cleaner');
-var requestAppWrapper = require('./helpers/request_app.js');
+var requestAppWrapper = require('./helpers/request_app');
 
 describe('Events', function() {
   var cleaner = databaseCleaner();
@@ -15,85 +15,92 @@ describe('Events', function() {
 
 
   describe('delete events', function() {
-    var authToken;
-    var eventID;
+    var authToken = {};
+    var eventID = {};
 
-    var createEvent = function(done) {
+    var createEvent = function(email, title, num, done) {
       requestApp.r()
         .post('/signup')
-        .send({'email': 'a@example.com', 'password': 'sample'})
+        .send({'email': email, 'password': 'sample'})
         .end(function(err, res) {
           if (err) { return done(err); }
-          authToken = res.body.authToken;
+          authToken[num] = res.body.authToken;
 
           requestApp.r()
             .post('/events')
             .set('Authorization', 'Token ' + res.body.authToken)
-            .send({'title': 'First example event'})
+            .send({'title': title + ' example event'})
             .end(function(err, eventResponse) {
               if (err) return done(err);
 
-              eventID = eventResponse.body.id;
+              eventID[num] = eventResponse.body.id;
               done();
             });
         });
     };
+    beforeEach(function(done) {
+      createEvent('a@example.com', 'First', 1, done);
+    });
+    beforeEach(function(done) {
+      createEvent('a2@example.com', 'Second', 2, done);
+    });
 
-    beforeEach(createEvent);
 
     describe('response', function() {
-      var deleteRequest = function() {
-        return requestApp.r()
-          .delete('/events/' + eventID);
-      };
+      context('delete second example event', function() {
+        var deleteRequest = function() {
+          return requestApp.r()
+            .delete('/events/' + eventID[2]);
+        };
 
-      context('user not logged in', function() {
-        it('should respond with a 401', function(done) {
-          deleteRequest().expect(401).end(done);
-        });
-      });
-      context('user not authorized', function () {
-        it('should respond with a 403', function(done) {
-          deleteRequest()
-            // real creator id is 60675e9030a052c822d7ef000ef196fb21f5dc3c8fdaa8b5799562140baf20e9
-            .set('Authorization', 'Token ' + '60675e9030a052c822d7ef000ef196fb21f5dc3c8fdaa8b5799562140baf20e1')
-            .expect(403)
-            .end(done);
-        });
-      });
-      context('user is authorized', function() {
-        it('should respond with 204 when event is deleted from database', function(done) {
-          deleteRequest()
-            .set('Authorization', 'Token ' + authToken)
-            // .expect('Content-Type', /json/)
-            .expect(204)
-            .end(done);
-        });
-        describe('after delete', function() {
-          beforeEach(function(done) {
+        context('user not logged in', function() {
+          it('should respond with a 401', function(done) {
             deleteRequest()
-              .set('Authorization', 'Token ' + authToken)
-              .end(done);
+            .expect(401)
+            .end(done);
           });
-
-          it('should not display event in list of events', function(done) {
-            requestApp.r()
-              .get('/events')
-              .set('Authorization', 'Token ' + authToken)
-              // .expect('Content-Type', /json/)
-              .end(function(err, res) {
-                if (err) { return done(err); }
-
-                expect(res.body).to.be.an('array').to.have.length(0);
-                done();
-              });
-          });
-          it('should return 401 and error if eventID does not exist', function(done) {
-            requestApp.r()
-              .delete('/events/123456789123')
-              .set('Authorization', 'Token ' + authToken)
+        });
+        context('user not authorized', function() {
+          it('should respond with a 403', function(done) {
+            deleteRequest()
+              .set('Authorization', 'Token ' + authToken[1])
               .expect(403)
               .end(done);
+          });
+        });
+        context('user is authorized', function() {
+          it('should respond with 204 when event is deleted from database', function(done) {
+            deleteRequest()
+              .set('Authorization', 'Token ' + authToken[2])
+              // .expect('Content-Type', /json/)
+              .expect(204)
+              .end(done);
+          });
+          describe('after delete', function() {
+            beforeEach(function(done) {
+              deleteRequest()
+                .set('Authorization', 'Token ' + authToken[2])
+                .end(done);
+            });
+
+            it('should not display event in list of events', function(done) {
+              requestApp.r()
+                .get('/events')
+                .expect('Content-Type', /json/)
+                .end(function(err, res) {
+                  if (err) { return done(err); }
+
+                  expect(res.body).to.be.an('array').to.have.length(1);
+                  done();
+                });
+            });
+            it('should return 401 and error if eventID does not exist', function(done) {
+              requestApp.r()
+                .delete('/events/123456789123')
+                .set('Authorization', 'Token ' + authToken[1])
+                .expect(403)
+                .end(done);
+            });
           });
         });
       });
