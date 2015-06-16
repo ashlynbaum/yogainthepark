@@ -44,7 +44,7 @@ describe('Events', function() {
       createEvent('a2@example.com', 'Second', 2, done);
     });
 
-    describe('request', function() {
+    describe('response', function() {
       context('if user is not logged in', function(){
         it('should respond with 401', function(done) {
           requestApp.r()
