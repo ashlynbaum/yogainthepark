@@ -1,5 +1,5 @@
-module.exports = function(app, auth, ObjectID, eventsCollection) {
-  app.delete('/events/:id', auth, function(req, res) {
+module.exports = function(ObjectID, eventsCollection) {
+  return function(req, res) {
     eventsCollection.findOne({ '_id': ObjectID(req.params.id) }, function(err, event) {
       if (event && event.creatorID.equals(req.user._id)) {
         eventsCollection.remove({ '_id': ObjectID(req.params.id) }, function() {
@@ -9,5 +9,5 @@ module.exports = function(app, auth, ObjectID, eventsCollection) {
         res.status(403).end();
       }
     });
-  });
+  }
 }

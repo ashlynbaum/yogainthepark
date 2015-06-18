@@ -111,7 +111,8 @@ module.exports.start = function(shouldListen, callback) {
         app.get('/events/:id', routes.events.readSingle(ObjectID, eventsCollection, formatEvent));
 
         // Delete Event
-        routes.events.delete(app, auth, ObjectID, eventsCollection);
+        // routes.events.delete(app, auth, ObjectID, eventsCollection);
+        app.delete('/events/:id', auth, routes.events.delete(ObjectID, eventsCollection));
 
         // Create Event
         routes.events.create(app, auth, createEvent, eventsCollection, formatEvent);
