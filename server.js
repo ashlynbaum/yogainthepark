@@ -1,4 +1,5 @@
 var express = require('express');
+var routes = require('./routes');
 
 var MongoClient = require('mongodb').MongoClient;
 // Connection URL for database
@@ -133,14 +134,7 @@ module.exports.start = function(shouldListen, callback) {
         });
 
         // Create Event
-        app.post('/events', auth, function(req, res) {
-          var eventObj = createEvent(req.body);
-          eventObj.creatorID = req.user._id;
-          eventsCollection.insert( eventObj, function(err, result) {
-            var event = result.ops[0];
-            res.status(201).send(formatEvent(event));
-          });
-        });
+        routes.events.create(app, auth, createEvent, eventsCollection, formatEvent);
 
         // update event
         app.patch('/events/:id', auth, function(req, res) {
