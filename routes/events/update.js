@@ -1,5 +1,5 @@
-module.exports = function(app, auth, eventsCollection, ObjectID, formatEvent){
-  app.patch('/events/:id', auth, function(req, res) {
+module.exports = function(eventsCollection, ObjectID, formatEvent){
+  return function(req, res) {
     eventsCollection.findOne( { '_id': ObjectID(req.params.id) }, function(err, event) {
       var creatorID = event.creatorID;
       if (creatorID.equals(req.user._id)) {
@@ -10,5 +10,5 @@ module.exports = function(app, auth, eventsCollection, ObjectID, formatEvent){
         res.status(403).end();
       }
     });
-  });
+  }
 }

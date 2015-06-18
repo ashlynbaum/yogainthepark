@@ -117,7 +117,7 @@ module.exports.start = function(shouldListen, callback) {
         app.post('/events', auth, routes.events.create(createEvent, eventsCollection, formatEvent));
 
         // update event
-        routes.events.update(app, auth, eventsCollection, ObjectID, formatEvent);
+        app.patch('/events/:id', auth, routes.events.update(eventsCollection, ObjectID, formatEvent));
 
         app.use(function(err, req, res, next) {
           console.log(' error', err);
