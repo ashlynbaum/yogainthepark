@@ -110,17 +110,7 @@ module.exports.start = function(shouldListen, callback) {
         routes.events.readSingle(app, ObjectID, eventsCollection, formatEvent);
 
         // Delete Event
-        app.delete('/events/:id', auth, function(req, res) {
-          eventsCollection.findOne({ '_id': ObjectID(req.params.id) }, function(err, event) {
-            if (event && event.creatorID.equals(req.user._id)) {
-              eventsCollection.remove({ '_id': ObjectID(req.params.id) }, function() {
-                res.status(204).end();
-              });
-            } else {
-              res.status(403).end();
-            }
-          });
-        });
+        routes.events.delete(app, auth, ObjectID, eventsCollection);
 
         // Create Event
         routes.events.create(app, auth, createEvent, eventsCollection, formatEvent);
