@@ -1,5 +1,5 @@
-module.exports = function(app, basicAuth, bcrypt, usersCollection, formatUser){
-  app.get('/', function(req, res) {
+module.exports = function(basicAuth, bcrypt, usersCollection, formatUser){
+  return function(req, res) {
     var basicAuthUser = basicAuth(req);
     if (!basicAuthUser) {
       res.status(403).end();
@@ -19,5 +19,5 @@ module.exports = function(app, basicAuth, bcrypt, usersCollection, formatUser){
         }
       });
     }
-  });
+  }
 }

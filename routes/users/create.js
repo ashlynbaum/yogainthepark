@@ -1,5 +1,5 @@
-module.exports = function (app, validateEmail, bcrypt, usersCollection, insertUserWithToken) {
-  app.post('/signup', function(req, res){
+module.exports = function (validateEmail, bcrypt, usersCollection, insertUserWithToken) {
+  return function(req, res){
     var isEmail = validateEmail(req.body.email);
     if (!isEmail) {
       res.status(422).send('Invalid email');
@@ -20,5 +20,5 @@ module.exports = function (app, validateEmail, bcrypt, usersCollection, insertUs
         });
       });
     }
-  });
+  }
 }

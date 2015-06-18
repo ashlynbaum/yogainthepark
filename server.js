@@ -164,10 +164,10 @@ module.exports.start = function(shouldListen, callback) {
 
         // use an index for token generation to fix race condition bug
         // collection.ensureIndex("username", {unique: true}, callback)
-        routes.users.create(app, validateEmail, bcrypt, usersCollection, insertUserWithToken);
+        app.post('/signup', routes.users.create(validateEmail, bcrypt, usersCollection, insertUserWithToken));
 
         // Basic Auth Login
-        routes.users.read(app, basicAuth, bcrypt, usersCollection, formatUser);
+        app.get('/', routes.users.read(basicAuth, bcrypt, usersCollection, formatUser));
 
         if (shouldListen) {
           var port = process.env.PORT || 3000;
