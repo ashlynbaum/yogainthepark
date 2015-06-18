@@ -104,10 +104,11 @@ module.exports.start = function(shouldListen, callback) {
         };
 
         // Read Events
-        routes.events.readAll(app, formatEvent, eventsCollection);
+        app.get('/events', routes.events.readAll(formatEvent, eventsCollection));
+
 
         // Read Single Events
-        routes.events.readSingle(app, ObjectID, eventsCollection, formatEvent);
+        app.get('/events/:id', routes.events.readSingle(ObjectID, eventsCollection, formatEvent));
 
         // Delete Event
         routes.events.delete(app, auth, ObjectID, eventsCollection);
