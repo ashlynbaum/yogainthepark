@@ -1,6 +1,6 @@
-// require('./create')
 module.exports = {
   create: require('./create'),
   update: require('./update'),
-  readAll: require('./read_all')
+  readAll: require('./read_all'),
+  readSingle: require('./read_single')
  };

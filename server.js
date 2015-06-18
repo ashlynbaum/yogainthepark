@@ -103,16 +103,11 @@ module.exports.start = function(shouldListen, callback) {
           });
         };
 
+        // Read Events
         routes.events.readAll(app, formatEvent, eventsCollection);
 
-        app.get('/events/:id', function(req, res, next) {
-          var id = ObjectID(req.params.id);
-          eventsCollection.findOne({ '_id': id }, function(err, event) {
-            if (event === null) return res.status(404).send(err);
-            var event2 = formatEvent(event);
-            res.send(event2);
-          });
-        });
+        // Read Single Events
+        routes.events.readSingle(app, ObjectID, eventsCollection, formatEvent);
 
         // Delete Event
         app.delete('/events/:id', auth, function(req, res) {
