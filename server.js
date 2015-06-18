@@ -166,27 +166,7 @@ module.exports.start = function(shouldListen, callback) {
         routes.users.create(app, validateEmail, bcrypt, usersCollection, insertUserWithToken);
 
         // Basic Auth Login
-        app.get('/', function(req, res) {
-          var basicAuthUser = basicAuth(req);
-          if (!basicAuthUser) {
-            res.status(403).end();
-          } else {
-            usersCollection.findOne( {email: basicAuthUser.name}, function(err, user) {
-              if (!user) {
-                res.status(403).end();
-              } else {
-                bcrypt.compare( basicAuthUser.pass, user.encryptedPassword, function(err, isSame) {
-                  if (isSame) {
-                    user = formatUser(user);
-                    res.status(200).send({auth_token: user.authToken});
-                  } else {
-                    res.status(403).end();
-                  }
-                });
-              }
-            });
-          }
-        });
+        routes.users.read(app, basicAuth, bcrypt, usersCollection, formatUser);
 
         if (shouldListen) {
           var port = process.env.PORT || 3000;
