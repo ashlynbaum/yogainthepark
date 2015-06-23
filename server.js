@@ -7,8 +7,7 @@ var MongoClient = require('mongodb').MongoClient;
 var url = ( process.env.MONGOLAB_URI || 'mongodb://localhost:27017/yoga' );
 
 var ObjectID = require('mongodb').ObjectID;
-var bcrypt = require('bcrypt');
-var basicAuth = require('basic-auth');
+
 var bodyParser = require('body-parser');
 
 
@@ -20,12 +19,6 @@ var createEvent = function(attr) {
     title: attr.title,
     creatorID: null
   };
-};
-
-
-var validateEmail = function validateEmail(email) {
-  var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
-  return re.test(email);
 };
 
 /*
@@ -99,10 +92,10 @@ module.exports.start = function(shouldListen, callback) {
 
         // use an index for token generation to fix race condition bug
         // collection.ensureIndex("username", {unique: true}, callback)
-        app.post('/signup', routes.users.create(db, validateEmail, bcrypt));
+        app.post('/signup', routes.users.create(db));
 
         // Basic Auth Login
-        app.get('/', routes.users.read(db, basicAuth, bcrypt));
+        app.get('/', routes.users.read(db));
 
         if (shouldListen) {
           var port = process.env.PORT || 3000;

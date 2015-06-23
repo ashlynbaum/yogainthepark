@@ -1,6 +1,8 @@
 var helpers = require('../../helpers');
+var bcrypt = require('bcrypt');
+var basicAuth = require('basic-auth');
 
-module.exports = function(db, basicAuth, bcrypt){
+module.exports = function(db){
   var usersCollection = db.collection('users');
   return function(req, res) {
     var basicAuthUser = basicAuth(req);
