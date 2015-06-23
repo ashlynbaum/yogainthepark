@@ -14,13 +14,6 @@ var bodyParser = require('body-parser');
 var middleware = require('./middleware');
 
 
-var createEvent = function(attr) {
-  return {
-    title: attr.title,
-    creatorID: null
-  };
-};
-
 /*
  * upgrade to https
  * for api use only
@@ -73,7 +66,7 @@ module.exports.start = function(shouldListen, callback) {
         app.delete('/events/:id', middleware.auth(db), routes.events.delete(db));
 
         // Create Event
-        app.post('/events', middleware.auth(db), routes.events.create(db, createEvent));
+        app.post('/events', middleware.auth(db), routes.events.create(db));
 
         // update event
         app.patch('/events/:id', middleware.auth(db), routes.events.update(db));

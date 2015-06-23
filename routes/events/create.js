@@ -1,7 +1,8 @@
 var helpers = require('../../helpers');
 
-module.exports = function(db, createEvent){
+module.exports = function(db){
   var eventsCollection = db.collection('events');
+  var createEvent = helpers.createEvent;
   return function(req, res) {
     var eventObj = createEvent(req.body);
     eventObj.creatorID = req.user._id;
