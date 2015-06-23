@@ -1,7 +1,8 @@
 var ObjectID = require('mongodb').ObjectID;
 var helpers = require('../../helpers');
 
-module.exports = function(eventsCollection){
+module.exports = function(db){
+  var eventsCollection = db.collection('events');
   return function(req, res) {
     eventsCollection.findOne( { '_id': ObjectID(req.params.id) }, function(err, event) {
       var creatorID = event.creatorID;

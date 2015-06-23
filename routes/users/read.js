@@ -1,6 +1,7 @@
 var helpers = require('../../helpers');
 
-module.exports = function(basicAuth, bcrypt, usersCollection){
+module.exports = function(db, basicAuth, bcrypt){
+  var usersCollection = db.collection('users');
   return function(req, res) {
     var basicAuthUser = basicAuth(req);
     if (!basicAuthUser) {

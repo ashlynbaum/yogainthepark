@@ -70,20 +70,20 @@ module.exports.start = function(shouldListen, callback) {
         }
 
         // Read Events
-        app.get('/events', routes.events.readAll(eventsCollection));
+        app.get('/events', routes.events.readAll(db));
 
 
         // Read Single Events
-        app.get('/events/:id', routes.events.readSingle(eventsCollection));
+        app.get('/events/:id', routes.events.readSingle(db));
 
         // Delete Event
-        app.delete('/events/:id', middleware.auth(db), routes.events.delete(eventsCollection));
+        app.delete('/events/:id', middleware.auth(db), routes.events.delete(db));
 
         // Create Event
-        app.post('/events', middleware.auth(db), routes.events.create(createEvent, eventsCollection));
+        app.post('/events', middleware.auth(db), routes.events.create(db, createEvent));
 
         // update event
-        app.patch('/events/:id', middleware.auth(db), routes.events.update(eventsCollection));
+        app.patch('/events/:id', middleware.auth(db), routes.events.update(db));
 
         app.use(function(err, req, res, next) {
           console.log(' error', err);
@@ -102,7 +102,7 @@ module.exports.start = function(shouldListen, callback) {
         app.post('/signup', routes.users.create(db, validateEmail, bcrypt));
 
         // Basic Auth Login
-        app.get('/', routes.users.read(basicAuth, bcrypt, usersCollection));
+        app.get('/', routes.users.read(db, basicAuth, bcrypt));
 
         if (shouldListen) {
           var port = process.env.PORT || 3000;

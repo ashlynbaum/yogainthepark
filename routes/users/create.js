@@ -1,7 +1,7 @@
 var helpers = require('../../helpers');
 
 
-module.exports = function (db, validateEmail, bcrypt, usersCollection) {
+module.exports = function (db, validateEmail, bcrypt) {
   var insertUserWithToken = helpers.insertUserWithToken(db);
   var usersCollection = db.collection('users');
   return function(req, res){
