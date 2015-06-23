@@ -1,5 +1,9 @@
+var helpers = require('../../helpers');
 
-module.exports = function (validateEmail, bcrypt, usersCollection, insertUserWithToken) {
+
+module.exports = function (db, validateEmail, bcrypt, usersCollection) {
+  var insertUserWithToken = helpers.insertUserWithToken(db);
+  var usersCollection = db.collection('users');
   return function(req, res){
     var isEmail = validateEmail(req.body.email);
     if (!isEmail) {

@@ -11,7 +11,7 @@ var bcrypt = require('bcrypt');
 var basicAuth = require('basic-auth');
 var bodyParser = require('body-parser');
 
-var crypto = require('crypto');
+
 var middleware = require('./middleware');
 
 
@@ -97,40 +97,9 @@ module.exports.start = function(shouldListen, callback) {
 
         // Get the users doc
 
-        // Use node crypto to generate random bytes asyncronously
-        var genToken = function(cb) {
-          crypto.randomBytes(32, function(err, buffer) {
-            if (err) {
-              // set timout to allow for entropy to be generated
-              setTimeout(function() { genToken(cb); }, 100);
-            } else {
-              // call the callback passing the buffer converted to string as an argument
-              cb(null, buffer.toString('hex'));
-            }
-          });
-        };
-
-        // Generate token and TRY to insert user into collection
-        // if error, try again recursively
-        var insertUserWithToken = function(user, cb) {
-          genToken(function(err, token) {
-            // insert user into databse
-            user.authToken = token;
-            usersCollection.insert(user, function(err, result) {
-              if (err) {
-                insertUserWithToken(user, cb);
-              } else {
-                // call the callback passing the inserted user as an argument
-                cb(null, result.ops[0]);
-              }
-            });
-          });
-        };
-
-
         // use an index for token generation to fix race condition bug
         // collection.ensureIndex("username", {unique: true}, callback)
-        app.post('/signup', routes.users.create(validateEmail, bcrypt, usersCollection, insertUserWithToken));
+        app.post('/signup', routes.users.create(db, validateEmail, bcrypt));
 
         // Basic Auth Login
         app.get('/', routes.users.read(basicAuth, bcrypt, usersCollection));
