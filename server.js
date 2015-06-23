@@ -12,6 +12,7 @@ var basicAuth = require('basic-auth');
 var bodyParser = require('body-parser');
 
 var crypto = require('crypto');
+var middleware = require('./middleware');
 
 // *** Utilities ***
 var clone = function(obj) {
@@ -84,40 +85,22 @@ module.exports.start = function(shouldListen, callback) {
         if (err) {
           throw new Error('Unable to ensure authToken index.');
         }
-        // authorization middleware
-        var auth = function(req, res, next) {
-          req = req.req || req;
-          var authToken = req.headers.authorization;
-          if (!authToken) return res.status(401).end();
-          var parts = authToken.split(' ');
-          if (parts[0].toLowerCase() !== 'token') return;
-          if (!parts[1]) return;
-          authToken = parts[1];
-          usersCollection.findOne( { authToken: authToken }, function(err, user) {
-            if (user) {
-              req.user = user;
-              next();
-            } else {
-              res.status(403).end();
-            }
-          });
-        };
 
         // Read Events
         app.get('/events', routes.events.readAll(formatEvent, eventsCollection));
 
 
         // Read Single Events
-        app.get('/events/:id', routes.events.readSingle(ObjectID, eventsCollection, formatEvent));
+        app.get('/events/:id', routes.events.readSingle(eventsCollection, formatEvent));
 
         // Delete Event
-        app.delete('/events/:id', auth, routes.events.delete(ObjectID, eventsCollection));
+        app.delete('/events/:id', middleware.auth(db), routes.events.delete(eventsCollection));
 
         // Create Event
-        app.post('/events', auth, routes.events.create(createEvent, eventsCollection, formatEvent));
+        app.post('/events', middleware.auth(db), routes.events.create(createEvent, eventsCollection, formatEvent));
 
         // update event
-        app.patch('/events/:id', auth, routes.events.update(eventsCollection, ObjectID, formatEvent));
+        app.patch('/events/:id', middleware.auth(db), routes.events.update(eventsCollection, formatEvent));
 
         app.use(function(err, req, res, next) {
           console.log(' error', err);
