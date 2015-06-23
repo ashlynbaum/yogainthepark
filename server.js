@@ -14,23 +14,6 @@ var bodyParser = require('body-parser');
 var crypto = require('crypto');
 var middleware = require('./middleware');
 
-// *** Utilities ***
-var clone = function(obj) {
-  return JSON.parse(JSON.stringify(obj));
-};
-
-// replaces the "_id" attribute with "id"
-// clone prevent function side effect
-function formatEvent(event) {
-  var e = clone(event);
-
-  e.id = e._id;
-  delete e._id;
-
-  return e;
-}
-
-var formatUser = formatEvent;
 
 var createEvent = function(attr) {
   return {
@@ -87,20 +70,20 @@ module.exports.start = function(shouldListen, callback) {
         }
 
         // Read Events
-        app.get('/events', routes.events.readAll(formatEvent, eventsCollection));
+        app.get('/events', routes.events.readAll(eventsCollection));
 
 
         // Read Single Events
-        app.get('/events/:id', routes.events.readSingle(eventsCollection, formatEvent));
+        app.get('/events/:id', routes.events.readSingle(eventsCollection));
 
         // Delete Event
         app.delete('/events/:id', middleware.auth(db), routes.events.delete(eventsCollection));
 
         // Create Event
-        app.post('/events', middleware.auth(db), routes.events.create(createEvent, eventsCollection, formatEvent));
+        app.post('/events', middleware.auth(db), routes.events.create(createEvent, eventsCollection));
 
         // update event
-        app.patch('/events/:id', middleware.auth(db), routes.events.update(eventsCollection, formatEvent));
+        app.patch('/events/:id', middleware.auth(db), routes.events.update(eventsCollection));
 
         app.use(function(err, req, res, next) {
           console.log(' error', err);
@@ -150,7 +133,7 @@ module.exports.start = function(shouldListen, callback) {
         app.post('/signup', routes.users.create(validateEmail, bcrypt, usersCollection, insertUserWithToken));
 
         // Basic Auth Login
-        app.get('/', routes.users.read(basicAuth, bcrypt, usersCollection, formatUser));
+        app.get('/', routes.users.read(basicAuth, bcrypt, usersCollection));
 
         if (shouldListen) {
           var port = process.env.PORT || 3000;

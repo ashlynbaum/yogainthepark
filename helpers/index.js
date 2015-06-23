@@ -1,3 +1,5 @@
 module.exports = {
-  auth: require('./middleware/auth')
+  formatEvent: require('./format_event'),
+  formatUser: require('./format_user'),
+  clone: require('./clone')
 }

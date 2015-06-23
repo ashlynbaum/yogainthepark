@@ -1,3 +1,4 @@
+
 module.exports = function (validateEmail, bcrypt, usersCollection, insertUserWithToken) {
   return function(req, res){
     var isEmail = validateEmail(req.body.email);

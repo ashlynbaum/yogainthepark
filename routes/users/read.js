@@ -1,4 +1,6 @@
-module.exports = function(basicAuth, bcrypt, usersCollection, formatUser){
+var helpers = require('../../helpers');
+
+module.exports = function(basicAuth, bcrypt, usersCollection){
   return function(req, res) {
     var basicAuthUser = basicAuth(req);
     if (!basicAuthUser) {
@@ -10,7 +12,7 @@ module.exports = function(basicAuth, bcrypt, usersCollection, formatUser){
         } else {
           bcrypt.compare( basicAuthUser.pass, user.encryptedPassword, function(err, isSame) {
             if (isSame) {
-              user = formatUser(user);
+              user = helpers.formatUser(user);
               res.status(200).send({auth_token: user.authToken});
             } else {
               res.status(403).end();
